@@ -69,6 +69,12 @@
   .empty { text-align: center; padding: 40px; color: #999; font-size: 14px; }
   .empty-icon { font-size: 40px; display: block; margin-bottom: 10px; opacity: 0.4; }
   .section-title { font-size: 15px; font-weight: 600; color: #2d7a3a; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #e0f5e5; }
+  .search-bar { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; }
+  .search-bar input { flex: 1; padding: 9px 14px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; font-family: 'Sarabun', sans-serif; transition: border-color 0.15s; }
+  .search-bar input:focus { outline: none; border-color: #2d7a3a; box-shadow: 0 0 0 3px rgba(45,122,58,0.12); }
+  .search-bar button { padding: 9px 16px; background: #2d7a3a; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; font-family: 'Sarabun', sans-serif; white-space: nowrap; }
+  .search-bar button:hover { background: #1f5c28; }
+  .search-result-count { font-size: 13px; color: #666; margin-bottom: 10px; }
   @media (max-width: 600px) {
     .row2, .row3 { grid-template-columns: 1fr; }
     body { padding: 8px; }
@@ -136,6 +142,11 @@
 
     <!-- รายการจอง -->
     <div id="sec-list" class="sec">
+      <div class="search-bar">
+        <input type="text" id="search-input" placeholder="🔍 ค้นหา HN, ชื่อ, แพทย์, หัตถการ..." oninput="renderList()">
+        <button onclick="clearSearch()">✖ ล้าง</button>
+      </div>
+      <div class="search-result-count" id="result-count"></div>
       <button class="btn-excel" onclick="exportExcel()">
         📊 ดาวน์โหลดรายการจองทั้งหมด (.xlsx)
       </button>
@@ -334,9 +345,23 @@ function downloadReceipt(id) {
 function renderList() {
   const tb = document.getElementById('tbl-body');
   const em = document.getElementById('empty-state');
-  if (!data.length) { tb.innerHTML = ''; em.style.display = 'block'; return; }
+  const rc = document.getElementById('result-count');
+  const q = (document.getElementById('search-input') ? document.getElementById('search-input').value : '').trim().toLowerCase();
+  const filtered = data.filter(r => {
+    if (!q) return true;
+    return (r.hn||'').toLowerCase().includes(q)
+      || (r.pname||'').toLowerCase().includes(q)
+      || (r.doctor||'').toLowerCase().includes(q)
+      || (r.reason||'').toLowerCase().includes(q)
+      || (r.phone||'').toLowerCase().includes(q)
+      || (r.note||'').toLowerCase().includes(q)
+      || (r.rooms||[]).join(' ').toLowerCase().includes(q);
+  });
+  if (!data.length) { tb.innerHTML = ''; em.style.display = 'block'; rc.textContent = ''; return; }
   em.style.display = 'none';
-  tb.innerHTML = data.map(r => `<tr>
+  rc.textContent = q ? `พบ ${filtered.length} รายการ จากทั้งหมด ${data.length} รายการ` : `ทั้งหมด ${data.length} รายการ`;
+  if (!filtered.length) { tb.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:24px;color:#999">ไม่พบรายการที่ค้นหา</td></tr>`; return; }
+  tb.innerHTML = filtered.map(r => `<tr>
     <td><strong>${r.hn}</strong></td>
     <td>${r.pname}</td>
     <td>${fmtDate(r.dbook)}</td>
@@ -351,6 +376,11 @@ function renderList() {
       <button class="btn-del" onclick="del(${r.id})">🗑️ ลบ</button>
     </td>
   </tr>`).join('');
+}
+
+function clearSearch() {
+  document.getElementById('search-input').value = '';
+  renderList();
 }
 
 function renderTags() {
