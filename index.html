@@ -10,28 +10,24 @@
   @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap');
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Sarabun', sans-serif; background: #f4f6f4; min-height: 100vh; padding: 16px; }
-  .container { max-width: 860px; margin: 0 auto; }
+  .container { max-width: 900px; margin: 0 auto; }
   .wrap { border: 1px solid #d0e0d0; border-radius: 14px; overflow: hidden; background: white; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
   .hdr { background: linear-gradient(135deg, #2d7a3a, #1f5c28); color: white; padding: 18px 22px; display: flex; align-items: center; gap: 14px; }
   .hdr-icon { width: 48px; height: 48px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
   .hdr h1 { font-size: 18px; font-weight: 700; }
   .hdr p { font-size: 12px; opacity: 0.85; margin-top: 2px; }
+  .loading-bar { background: #fff3cd; color: #856404; padding: 10px 16px; font-size: 13px; text-align: center; display: none; border-bottom: 1px solid #ffc107; }
   .tabs { display: flex; background: white; border-bottom: 1px solid #e0e0e0; }
   .tab { flex: 1; padding: 13px 8px; text-align: center; font-size: 14px; cursor: pointer; color: #666; border-bottom: 3px solid transparent; transition: all 0.15s; font-family: 'Sarabun', sans-serif; background: none; border-top: none; border-left: none; border-right: none; }
   .tab.active { color: #2d7a3a; border-bottom-color: #2d7a3a; font-weight: 600; }
   .tab:hover:not(.active) { background: #f5faf5; }
   .body { padding: 20px; background: white; }
-  .sec { display: none; }
-  .sec.active { display: block; }
+  .sec { display: none; } .sec.active { display: block; }
   .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
   .fg { margin-bottom: 14px; }
   .fg label { display: block; font-size: 13px; color: #555; margin-bottom: 5px; font-weight: 600; }
-  .fg input, .fg select, .fg textarea {
-    width: 100%; padding: 9px 12px; border: 1px solid #ccc; border-radius: 8px;
-    font-size: 14px; background: white; color: #222; font-family: 'Sarabun', sans-serif;
-    transition: border-color 0.15s;
-  }
+  .fg input, .fg select, .fg textarea { width: 100%; padding: 9px 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; background: white; color: #222; font-family: 'Sarabun', sans-serif; transition: border-color 0.15s; }
   .fg input:focus, .fg select:focus, .fg textarea:focus { outline: none; border-color: #2d7a3a; box-shadow: 0 0 0 3px rgba(45,122,58,0.12); }
   .fg textarea { resize: none; height: 64px; }
   .multi-select { border: 1px solid #ccc; border-radius: 8px; overflow: hidden; }
@@ -47,21 +43,34 @@
   .src-opt input { accent-color: #2d7a3a; }
   .btn-primary { width: 100%; padding: 11px; background: #2d7a3a; color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; font-family: 'Sarabun', sans-serif; transition: background 0.15s; margin-top: 4px; }
   .btn-primary:hover { background: #1f5c28; }
-  .btn-primary:active { transform: scale(0.99); }
-  .btn-excel { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 10px; background: #1a5c9e; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Sarabun', sans-serif; transition: background 0.15s; margin-bottom: 14px; }
+  .btn-primary:disabled { background: #aaa; cursor: not-allowed; }
+  .btn-excel { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 10px; background: #1a5c9e; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Sarabun', sans-serif; transition: background 0.15s; margin-bottom: 10px; }
   .btn-excel:hover { background: #0C447C; }
+  .btn-refresh { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 16px; background: white; color: #2d7a3a; border: 1px solid #2d7a3a; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Sarabun', sans-serif; margin-bottom: 10px; }
+  .btn-refresh:hover { background: #e0f5e5; }
   .alert { padding: 10px 14px; border-radius: 8px; font-size: 14px; margin-bottom: 14px; display: none; }
   .alert-ok { background: #e0f5e5; color: #1a5c25; border: 1px solid #80c890; }
   .alert-err { background: #fdecea; color: #7a1a1a; border: 1px solid #f09595; }
   .divider { border: none; border-top: 1px solid #eee; margin: 14px 0; }
+  .search-bar { display: flex; gap: 8px; margin-bottom: 10px; align-items: center; }
+  .search-bar input { flex: 1; padding: 9px 14px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; font-family: 'Sarabun', sans-serif; }
+  .search-bar input:focus { outline: none; border-color: #2d7a3a; box-shadow: 0 0 0 3px rgba(45,122,58,0.12); }
+  .search-bar button { padding: 9px 14px; background: #2d7a3a; color: white; border: none; border-radius: 8px; font-size: 13px; cursor: pointer; font-family: 'Sarabun', sans-serif; }
+  .search-bar button:hover { background: #1f5c28; }
+  .sort-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; align-items: center; }
+  .sort-label { font-size: 13px; color: #555; font-weight: 600; white-space: nowrap; }
+  .sort-btn { padding: 6px 12px; border: 1px solid #ccc; border-radius: 20px; font-size: 12px; cursor: pointer; font-family: 'Sarabun', sans-serif; background: white; color: #444; transition: all 0.15s; }
+  .sort-btn:hover { border-color: #2d7a3a; color: #2d7a3a; }
+  .sort-btn.active { background: #2d7a3a; color: white; border-color: #2d7a3a; }
+  .search-result-count { font-size: 13px; color: #666; margin-bottom: 10px; }
   .tbl-wrap { overflow-x: auto; }
   table.list { width: 100%; border-collapse: collapse; font-size: 13px; }
   table.list th { background: #2d7a3a; color: white; padding: 9px 8px; text-align: left; font-weight: 600; white-space: nowrap; }
   table.list td { padding: 8px; border-bottom: 1px solid #eee; color: #222; vertical-align: top; }
   table.list tr:hover td { background: #f5faf5; }
-  .badge-fb { background: #dbeafe; color: #1e40af; font-size: 11px; padding: 2px 7px; border-radius: 10px; white-space: nowrap; }
-  .badge-cnt { background: #dcfce7; color: #166534; font-size: 11px; padding: 2px 7px; border-radius: 10px; white-space: nowrap; }
-  .badge-other { background: #f3f4f6; color: #374151; font-size: 11px; padding: 2px 7px; border-radius: 10px; white-space: nowrap; }
+  .badge-fb { background: #dbeafe; color: #1e40af; font-size: 11px; padding: 2px 7px; border-radius: 10px; }
+  .badge-cnt { background: #dcfce7; color: #166534; font-size: 11px; padding: 2px 7px; border-radius: 10px; }
+  .badge-other { background: #f3f4f6; color: #374151; font-size: 11px; padding: 2px 7px; border-radius: 10px; }
   .btn-receipt { background: white; border: 1px solid #2d7a3a; border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 12px; color: #2d7a3a; font-family: 'Sarabun', sans-serif; display: block; width: 100%; margin-bottom: 4px; }
   .btn-receipt:hover { background: #e0f5e5; }
   .btn-del { background: white; border: 1px solid #ccc; border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 12px; color: #a32d2d; font-family: 'Sarabun', sans-serif; display: block; width: 100%; }
@@ -69,17 +78,8 @@
   .empty { text-align: center; padding: 40px; color: #999; font-size: 14px; }
   .empty-icon { font-size: 40px; display: block; margin-bottom: 10px; opacity: 0.4; }
   .section-title { font-size: 15px; font-weight: 600; color: #2d7a3a; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #e0f5e5; }
-  .search-bar { display: flex; gap: 8px; margin-bottom: 10px; align-items: center; }
-  .search-bar input { flex: 1; padding: 9px 14px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; font-family: 'Sarabun', sans-serif; transition: border-color 0.15s; }
-  .search-bar input:focus { outline: none; border-color: #2d7a3a; box-shadow: 0 0 0 3px rgba(45,122,58,0.12); }
-  .search-bar button { padding: 9px 16px; background: #2d7a3a; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; font-family: 'Sarabun', sans-serif; white-space: nowrap; }
-  .search-bar button:hover { background: #1f5c28; }
-  .sort-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; align-items: center; }
-  .sort-label { font-size: 13px; color: #555; font-weight: 600; white-space: nowrap; }
-  .sort-btn { padding: 6px 12px; border: 1px solid #ccc; border-radius: 20px; font-size: 12px; cursor: pointer; font-family: 'Sarabun', sans-serif; background: white; color: #444; transition: all 0.15s; white-space: nowrap; }
-  .sort-btn:hover { border-color: #2d7a3a; color: #2d7a3a; }
-  .sort-btn.active { background: #2d7a3a; color: white; border-color: #2d7a3a; }
-  .search-result-count { font-size: 13px; color: #666; margin-bottom: 10px; }
+  .top-bar { display: flex; gap: 8px; margin-bottom: 10px; }
+  .top-bar .btn-excel { margin-bottom: 0; flex: 1; }
   @media (max-width: 600px) {
     .row2, .row3 { grid-template-columns: 1fr; }
     body { padding: 8px; }
@@ -97,6 +97,7 @@
       <p>ระบบจองห้องพิเศษผู้ป่วยใน — เคาน์เตอร์ประชาสัมพันธ์</p>
     </div>
   </div>
+  <div id="loading-bar" class="loading-bar">⏳ กำลังโหลดข้อมูลจาก Google Sheets...</div>
   <div class="tabs">
     <button class="tab active" onclick="sw('form')">📋 บันทึกการจอง</button>
     <button class="tab" onclick="sw('list')">📄 รายการจอง</button>
@@ -104,7 +105,6 @@
   <div class="body">
     <div id="alert-box" class="alert"></div>
 
-    <!-- ฟอร์มบันทึก -->
     <div id="sec-form" class="sec active">
       <div class="section-title">ข้อมูลผู้ป่วย</div>
       <div class="row2">
@@ -142,10 +142,9 @@
         </div>
       </div>
       <div class="fg"><label>หมายเหตุเพิ่มเติม</label><textarea id="note" placeholder="ระบุรายละเอียดเพิ่มเติม (ถ้ามี)"></textarea></div>
-      <button class="btn-primary" onclick="saveBooking()">💾 บันทึกการจอง</button>
+      <button class="btn-primary" id="btn-save" onclick="saveBooking()">💾 บันทึกการจอง</button>
     </div>
 
-    <!-- รายการจอง -->
     <div id="sec-list" class="sec">
       <div class="search-bar">
         <input type="text" id="search-input" placeholder="🔍 ค้นหา HN, ชื่อ, แพทย์, หัตถการ..." oninput="renderList()">
@@ -161,30 +160,23 @@
         <button class="sort-btn" onclick="setSort('hn')" id="sort-hn">🔢 HN</button>
       </div>
       <div class="search-result-count" id="result-count"></div>
-      <button class="btn-excel" onclick="exportExcel()">
-        📊 ดาวน์โหลดรายการจองทั้งหมด (.xlsx)
-      </button>
+      <div class="top-bar">
+        <button class="btn-excel" onclick="exportExcel()">📊 ดาวน์โหลด Excel (.xlsx)</button>
+        <button class="btn-refresh" onclick="loadData()">🔄 รีเฟรช</button>
+      </div>
       <div class="tbl-wrap">
         <table class="list">
           <thead>
             <tr>
-              <th>HN</th>
-              <th>ชื่อ-นามสกุล</th>
-              <th>วันที่จอง</th>
-              <th>วันที่ Admit</th>
-              <th>ประเภทห้องพิเศษ</th>
-              <th>แพทย์ผู้นัด</th>
-              <th>หัตถการ/สาเหตุ</th>
-              <th>เบอร์ติดต่อ</th>
-              <th>หมายเหตุ</th>
-              <th>จัดการ</th>
+              <th>HN</th><th>ชื่อ-นามสกุล</th><th>วันที่จอง</th><th>วันที่ Admit</th>
+              <th>ประเภทห้องพิเศษ</th><th>แพทย์ผู้นัด</th><th>หัตถการ/สาเหตุ</th>
+              <th>เบอร์ติดต่อ</th><th>หมายเหตุ</th><th>จัดการ</th>
             </tr>
           </thead>
           <tbody id="tbl-body"></tbody>
         </table>
         <div id="empty-state" class="empty">
-          <span class="empty-icon">📅</span>
-          ยังไม่มีรายการจอง
+          <span class="empty-icon">📅</span>ยังไม่มีรายการจอง
         </div>
       </div>
     </div>
@@ -192,23 +184,55 @@
 </div>
 </div>
 
-<!-- template ใบหลักฐาน -->
 <div id="receipt-tpl" style="position:fixed;left:-9999px;top:0;width:720px;background:white;font-family:'Sarabun',sans-serif;padding:0;z-index:-1"></div>
 
 <script>
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbztHhaTFT7DHJ991sEFtjoOt-DRYxcryKkYASAQ8TuOEkpyEiu7r4L-wp9jE6DJPUGr1A/exec';
 let data = [];
-try { data = JSON.parse(localStorage.getItem('sichon_v2') || '[]'); } catch(e) {}
+let sortKey = 'id';
+let sortAsc = false;
+
+async function loadData() {
+  showLoading(true);
+  try {
+    const res = await fetch(GAS_URL);
+    const json = await res.json();
+    data = (json.data || []).map(r => ({
+      id: r.id,
+      hn: r.hn,
+      pname: r.pname,
+      dbook: r.dbook,
+      dadmit: r.dadmit,
+      doctor: r.doctor,
+      rooms: typeof r.rooms === 'string' ? r.rooms.split(', ').filter(Boolean) : (r.rooms || []),
+      reason: r.reason,
+      phone: r.phone,
+      note: r.note,
+      src: r.src
+    }));
+    renderList();
+    showAlert('✅ โหลดข้อมูลสำเร็จ ' + data.length + ' รายการ', 'ok');
+  } catch(e) {
+    showAlert('❌ โหลดข้อมูลไม่สำเร็จ กรุณากด รีเฟรช', 'err');
+  }
+  showLoading(false);
+}
+
+function showLoading(on) {
+  document.getElementById('loading-bar').style.display = on ? 'block' : 'none';
+}
 
 function fmtDate(d) {
   if (!d) return '-';
-  const p = d.split('-');
+  const p = String(d).split('-');
+  if (p.length < 3) return d;
   const m = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
   return p[2] + ' ' + m[parseInt(p[1])-1] + ' ' + (parseInt(p[0])+543);
 }
 
 function fmtDateXL(d) {
   if (!d) return '-';
-  const p = d.split('-');
+  const p = String(d).split('-');
   return p[2] + '/' + p[1] + '/' + (parseInt(p[0])+543);
 }
 
@@ -224,7 +248,7 @@ function srcBadge(s) {
   return '<span class="badge-other">อื่นๆ</span>';
 }
 
-function saveBooking() {
+async function saveBooking() {
   const hn = document.getElementById('hn').value.trim();
   const pname = document.getElementById('pname').value.trim();
   const dbook = document.getElementById('dbook').value;
@@ -241,66 +265,72 @@ function saveBooking() {
   if (!dbook || !dadmit) return showAlert('กรุณากรอกวันที่', 'err');
   if (!rooms.length) return showAlert('กรุณาเลือกประเภทห้อง', 'err');
 
-  data.unshift({ id: Date.now(), hn, pname, dbook, dadmit, doctor, rooms, reason, phone, note, src });
-  try { localStorage.setItem('sichon_v2', JSON.stringify(data)); } catch(e) {}
+  const btn = document.getElementById('btn-save');
+  btn.disabled = true;
+  btn.textContent = '⏳ กำลังบันทึก...';
+  showLoading(true);
 
-  ['hn','pname','dbook','dadmit','doctor','reason','phone','note'].forEach(id => document.getElementById(id).value = '');
-  document.querySelector('input[name=src][value=counter]').checked = true;
-  document.querySelectorAll('#room-opts input').forEach(c => c.checked = false);
-  renderTags();
-  document.getElementById('dbook').value = new Date().toISOString().split('T')[0];
-  showAlert('✅ บันทึกการจองเรียบร้อย — ไปที่แท็บ "รายการจอง" เพื่อดาวน์โหลดใบหลักฐาน', 'ok');
+  const rec = { action: 'add', id: Date.now(), hn, pname, dbook, dadmit, doctor, rooms, reason, phone, note, src };
+
+  try {
+    await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(rec) });
+    data.unshift({ ...rec });
+    ['hn','pname','dadmit','doctor','reason','phone','note'].forEach(id => document.getElementById(id).value = '');
+    document.querySelector('input[name=src][value=counter]').checked = true;
+    document.querySelectorAll('#room-opts input').forEach(c => c.checked = false);
+    renderTags();
+    showAlert('✅ บันทึกสำเร็จ! ข้อมูลบันทึกลง Google Sheets แล้ว', 'ok');
+  } catch(e) {
+    showAlert('❌ บันทึกไม่สำเร็จ กรุณาลองใหม่', 'err');
+  }
+
+  btn.disabled = false;
+  btn.textContent = '💾 บันทึกการจอง';
+  showLoading(false);
 }
 
-function del(id) {
+async function del(id) {
   if (!confirm('ยืนยันการลบรายการนี้?')) return;
-  data = data.filter(d => d.id !== id);
-  try { localStorage.setItem('sichon_v2', JSON.stringify(data)); } catch(e) {}
-  renderList();
+  showLoading(true);
+  try {
+    await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'delete', id }) });
+    data = data.filter(d => String(d.id) !== String(id));
+    renderList();
+    showAlert('✅ ลบรายการเรียบร้อยแล้ว', 'ok');
+  } catch(e) {
+    showAlert('❌ ลบไม่สำเร็จ กรุณาลองใหม่', 'err');
+  }
+  showLoading(false);
 }
 
 function exportExcel() {
   if (!data.length) return showAlert('ยังไม่มีรายการจอง', 'err');
   const rows = data.map((r, i) => ({
-    'ลำดับ': i + 1,
-    'HN': r.hn,
-    'ชื่อ-นามสกุล': r.pname,
-    'วันที่จอง': fmtDateXL(r.dbook),
-    'วันที่ Admit': fmtDateXL(r.dadmit),
-    'ประเภทห้องพิเศษ': (r.rooms || []).join(', '),
-    'แพทย์ผู้นัด': r.doctor || '-',
-    'หัตถการ/สาเหตุที่นัด': r.reason || '-',
-    'เบอร์ติดต่อ': r.phone || '-',
-    'ช่องทางการจอง': srcLabel(r.src),
-    'หมายเหตุ': r.note || '-'
+    'ลำดับ': i+1, 'HN': r.hn, 'ชื่อ-นามสกุล': r.pname,
+    'วันที่จอง': fmtDateXL(r.dbook), 'วันที่ Admit': fmtDateXL(r.dadmit),
+    'ประเภทห้องพิเศษ': (r.rooms||[]).join(', '),
+    'แพทย์ผู้นัด': r.doctor||'-', 'หัตถการ/สาเหตุที่นัด': r.reason||'-',
+    'เบอร์ติดต่อ': r.phone||'-', 'ช่องทางการจอง': srcLabel(r.src), 'หมายเหตุ': r.note||'-'
   }));
   const ws = XLSX.utils.json_to_sheet(rows);
   ws['!cols'] = [{wch:6},{wch:12},{wch:22},{wch:14},{wch:14},{wch:32},{wch:18},{wch:24},{wch:14},{wch:24},{wch:22}];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'รายการจองห้องพิเศษ');
   const d = new Date();
-  const fname = 'รายการจองห้องพิเศษ_โรงพยาบาลสิชล_' + d.toLocaleDateString('th-TH').replace(/\//g, '-') + '.xlsx';
-  XLSX.writeFile(wb, fname);
-  showAlert('✅ ดาวน์โหลด Excel เรียบร้อยแล้ว', 'ok');
+  XLSX.writeFile(wb, 'รายการจองห้องพิเศษ_โรงพยาบาลสิชล_' + d.toLocaleDateString('th-TH').replace(/\//g,'-') + '.xlsx');
+  showAlert('✅ ดาวน์โหลด Excel เรียบร้อย', 'ok');
 }
 
 function downloadReceipt(id) {
-  const r = data.find(d => d.id === id);
+  const r = data.find(d => String(d.id) === String(id));
   if (!r) return;
   const refNo = 'REF-' + String(r.id).slice(-6);
   const tpl = document.getElementById('receipt-tpl');
-  tpl.innerHTML = `
-  <div style="width:720px;background:white;padding:0;font-family:'Sarabun',sans-serif">
+  tpl.innerHTML = `<div style="width:720px;background:white;padding:0;font-family:'Sarabun',sans-serif">
     <div style="background:linear-gradient(135deg,#2d7a3a,#1f5c28);padding:28px 36px;display:flex;align-items:center;gap:18px">
       <div style="width:60px;height:60px;background:rgba(255,255,255,0.25);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:30px">🏥</div>
-      <div>
-        <div style="color:white;font-size:22px;font-weight:700">โรงพยาบาลสิชล</div>
-        <div style="color:rgba(255,255,255,0.85);font-size:14px;margin-top:3px">ใบยืนยันการจองห้องพิเศษผู้ป่วยใน</div>
-      </div>
-      <div style="margin-left:auto;text-align:right">
-        <div style="color:rgba(255,255,255,0.7);font-size:12px">เลขที่อ้างอิง</div>
-        <div style="color:white;font-size:18px;font-weight:700">${refNo}</div>
-      </div>
+      <div><div style="color:white;font-size:22px;font-weight:700">โรงพยาบาลสิชล</div><div style="color:rgba(255,255,255,0.85);font-size:14px;margin-top:3px">ใบยืนยันการจองห้องพิเศษผู้ป่วยใน</div></div>
+      <div style="margin-left:auto;text-align:right"><div style="color:rgba(255,255,255,0.7);font-size:12px">เลขที่อ้างอิง</div><div style="color:white;font-size:18px;font-weight:700">${refNo}</div></div>
     </div>
     <div style="padding:32px 36px">
       <div style="background:#f0faf3;border:1.5px solid #a8d5b5;border-radius:12px;padding:22px 26px;margin-bottom:22px">
@@ -317,30 +347,20 @@ function downloadReceipt(id) {
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
           <div><div style="font-size:11px;color:#888;margin-bottom:4px">วันที่จอง</div><div style="font-size:14px;color:#111">${fmtDate(r.dbook)}</div></div>
           <div><div style="font-size:11px;color:#888;margin-bottom:4px">วันที่ Admit</div><div style="font-size:18px;font-weight:700;color:#c07800">${fmtDate(r.dadmit)}</div></div>
-          <div style="grid-column:span 2">
-            <div style="font-size:11px;color:#888;margin-bottom:8px">ประเภทห้องพิเศษที่จอง</div>
-            <div style="display:flex;flex-wrap:wrap;gap:7px">${(r.rooms||[]).map(rm=>`<span style="background:#2d7a3a;color:white;font-size:13px;padding:4px 14px;border-radius:20px">${rm}</span>`).join('')}</div>
-          </div>
+          <div style="grid-column:span 2"><div style="font-size:11px;color:#888;margin-bottom:8px">ประเภทห้องพิเศษที่จอง</div><div style="display:flex;flex-wrap:wrap;gap:7px">${(r.rooms||[]).map(rm=>`<span style="background:#2d7a3a;color:white;font-size:13px;padding:4px 14px;border-radius:20px">${rm}</span>`).join('')}</div></div>
           <div style="grid-column:span 2"><div style="font-size:11px;color:#888;margin-bottom:4px">หัตถการ / สาเหตุที่นัด</div><div style="font-size:14px;color:#111">${r.reason||'-'}</div></div>
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:22px">
-        <div style="background:#f5f5f5;border-radius:10px;padding:16px 20px">
-          <div style="font-size:11px;color:#888;margin-bottom:4px">ช่องทางการจอง</div>
-          <div style="font-size:14px;font-weight:600;color:#111">${srcLabel(r.src)}</div>
-        </div>
-        <div style="background:#f5f5f5;border-radius:10px;padding:16px 20px">
-          <div style="font-size:11px;color:#888;margin-bottom:4px">หมายเหตุ</div>
-          <div style="font-size:14px;color:#111">${r.note||'-'}</div>
-        </div>
+        <div style="background:#f5f5f5;border-radius:10px;padding:16px 20px"><div style="font-size:11px;color:#888;margin-bottom:4px">ช่องทางการจอง</div><div style="font-size:14px;font-weight:600;color:#111">${srcLabel(r.src)}</div></div>
+        <div style="background:#f5f5f5;border-radius:10px;padding:16px 20px"><div style="font-size:11px;color:#888;margin-bottom:4px">หมายเหตุ</div><div style="font-size:14px;color:#111">${r.note||'-'}</div></div>
       </div>
-      <div style="border-top:1.5px dashed #ddd;padding-top:16px;display:flex;justify-content:space-between;align-items:center">
+      <div style="border-top:1.5px dashed #ddd;padding-top:16px;display:flex;justify-content:space-between">
         <div style="font-size:12px;color:#aaa">พิมพ์โดยระบบจองห้องพิเศษ โรงพยาบาลสิชล</div>
         <div style="font-size:12px;color:#aaa">วันที่พิมพ์: ${new Date().toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'})}</div>
       </div>
     </div>
   </div>`;
-
   showAlert('⏳ กำลังสร้างใบหลักฐาน...', 'ok');
   setTimeout(() => {
     html2canvas(tpl, { scale: 2, useCORS: true, backgroundColor: '#ffffff', width: 720 }).then(canvas => {
@@ -349,15 +369,10 @@ function downloadReceipt(id) {
       link.href = canvas.toDataURL('image/png');
       link.click();
       tpl.innerHTML = '';
-      showAlert('✅ ดาวน์โหลดใบหลักฐานเรียบร้อยแล้ว', 'ok');
-    }).catch(() => {
-      showAlert('❌ เกิดข้อผิดพลาด กรุณาลองใหม่', 'err');
-    });
+      showAlert('✅ ดาวน์โหลดใบหลักฐานเรียบร้อย', 'ok');
+    }).catch(() => showAlert('❌ เกิดข้อผิดพลาด กรุณาลองใหม่', 'err'));
   }, 300);
 }
-
-let sortKey = 'id';
-let sortAsc = false;
 
 function setSort(key) {
   if (sortKey === key) { sortAsc = !sortAsc; }
@@ -372,7 +387,7 @@ function renderList() {
   const tb = document.getElementById('tbl-body');
   const em = document.getElementById('empty-state');
   const rc = document.getElementById('result-count');
-  const q = (document.getElementById('search-input') ? document.getElementById('search-input').value : '').trim().toLowerCase();
+  const q = (document.getElementById('search-input')?.value || '').trim().toLowerCase();
   let filtered = data.filter(r => {
     if (!q) return true;
     return (r.hn||'').toLowerCase().includes(q)
@@ -384,8 +399,7 @@ function renderList() {
       || (r.rooms||[]).join(' ').toLowerCase().includes(q);
   });
   filtered.sort((a, b) => {
-    let va = a[sortKey] || '';
-    let vb = b[sortKey] || '';
+    let va = a[sortKey] || '', vb = b[sortKey] || '';
     if (sortKey === 'id') { va = Number(va); vb = Number(vb); }
     const cmp = va < vb ? -1 : va > vb ? 1 : 0;
     return sortAsc ? cmp : -cmp;
@@ -403,10 +417,10 @@ function renderList() {
     <td>${r.doctor||'-'}</td>
     <td>${r.reason||'-'}</td>
     <td>${r.phone||'-'}</td>
-    <td>${srcBadge(r.src)}${r.note ? '<br><span style="font-size:12px;color:#666">'+r.note+'</span>' : ''}</td>
+    <td>${srcBadge(r.src)}${r.note?'<br><span style="font-size:12px;color:#666">'+r.note+'</span>':''}</td>
     <td style="min-width:90px">
-      <button class="btn-receipt" onclick="downloadReceipt(${r.id})">🖼️ ใบหลักฐาน</button>
-      <button class="btn-del" onclick="del(${r.id})">🗑️ ลบ</button>
+      <button class="btn-receipt" onclick="downloadReceipt('${r.id}')">🖼️ ใบหลักฐาน</button>
+      <button class="btn-del" onclick="del('${r.id}')">🗑️ ลบ</button>
     </td>
   </tr>`).join('');
 }
@@ -434,7 +448,7 @@ function sw(tab) {
   document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', ['form','list'][i] === tab));
   document.querySelectorAll('.sec').forEach(s => s.classList.remove('active'));
   document.getElementById('sec-' + tab).classList.add('active');
-  if (tab === 'list') renderList();
+  if (tab === 'list') loadData();
 }
 
 function showAlert(msg, type) {
