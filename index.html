@@ -69,11 +69,16 @@
   .empty { text-align: center; padding: 40px; color: #999; font-size: 14px; }
   .empty-icon { font-size: 40px; display: block; margin-bottom: 10px; opacity: 0.4; }
   .section-title { font-size: 15px; font-weight: 600; color: #2d7a3a; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #e0f5e5; }
-  .search-bar { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; }
+  .search-bar { display: flex; gap: 8px; margin-bottom: 10px; align-items: center; }
   .search-bar input { flex: 1; padding: 9px 14px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; font-family: 'Sarabun', sans-serif; transition: border-color 0.15s; }
   .search-bar input:focus { outline: none; border-color: #2d7a3a; box-shadow: 0 0 0 3px rgba(45,122,58,0.12); }
   .search-bar button { padding: 9px 16px; background: #2d7a3a; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; font-family: 'Sarabun', sans-serif; white-space: nowrap; }
   .search-bar button:hover { background: #1f5c28; }
+  .sort-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; align-items: center; }
+  .sort-label { font-size: 13px; color: #555; font-weight: 600; white-space: nowrap; }
+  .sort-btn { padding: 6px 12px; border: 1px solid #ccc; border-radius: 20px; font-size: 12px; cursor: pointer; font-family: 'Sarabun', sans-serif; background: white; color: #444; transition: all 0.15s; white-space: nowrap; }
+  .sort-btn:hover { border-color: #2d7a3a; color: #2d7a3a; }
+  .sort-btn.active { background: #2d7a3a; color: white; border-color: #2d7a3a; }
   .search-result-count { font-size: 13px; color: #666; margin-bottom: 10px; }
   @media (max-width: 600px) {
     .row2, .row3 { grid-template-columns: 1fr; }
@@ -145,6 +150,15 @@
       <div class="search-bar">
         <input type="text" id="search-input" placeholder="🔍 ค้นหา HN, ชื่อ, แพทย์, หัตถการ..." oninput="renderList()">
         <button onclick="clearSearch()">✖ ล้าง</button>
+      </div>
+      <div class="sort-bar">
+        <span class="sort-label">เรียงตาม:</span>
+        <button class="sort-btn active" onclick="setSort('id')" id="sort-id">📅 วันที่บันทึก</button>
+        <button class="sort-btn" onclick="setSort('dbook')" id="sort-dbook">🗓️ วันที่จอง</button>
+        <button class="sort-btn" onclick="setSort('dadmit')" id="sort-dadmit">🏥 วันที่ Admit</button>
+        <button class="sort-btn" onclick="setSort('doctor')" id="sort-doctor">👨‍⚕️ แพทย์ผู้นัด</button>
+        <button class="sort-btn" onclick="setSort('pname')" id="sort-pname">🔤 ชื่อผู้ป่วย</button>
+        <button class="sort-btn" onclick="setSort('hn')" id="sort-hn">🔢 HN</button>
       </div>
       <div class="search-result-count" id="result-count"></div>
       <button class="btn-excel" onclick="exportExcel()">
@@ -342,12 +356,24 @@ function downloadReceipt(id) {
   }, 300);
 }
 
+let sortKey = 'id';
+let sortAsc = false;
+
+function setSort(key) {
+  if (sortKey === key) { sortAsc = !sortAsc; }
+  else { sortKey = key; sortAsc = key === 'pname' || key === 'doctor' || key === 'hn'; }
+  document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('sort-' + key);
+  if (btn) btn.classList.add('active');
+  renderList();
+}
+
 function renderList() {
   const tb = document.getElementById('tbl-body');
   const em = document.getElementById('empty-state');
   const rc = document.getElementById('result-count');
   const q = (document.getElementById('search-input') ? document.getElementById('search-input').value : '').trim().toLowerCase();
-  const filtered = data.filter(r => {
+  let filtered = data.filter(r => {
     if (!q) return true;
     return (r.hn||'').toLowerCase().includes(q)
       || (r.pname||'').toLowerCase().includes(q)
@@ -356,6 +382,13 @@ function renderList() {
       || (r.phone||'').toLowerCase().includes(q)
       || (r.note||'').toLowerCase().includes(q)
       || (r.rooms||[]).join(' ').toLowerCase().includes(q);
+  });
+  filtered.sort((a, b) => {
+    let va = a[sortKey] || '';
+    let vb = b[sortKey] || '';
+    if (sortKey === 'id') { va = Number(va); vb = Number(vb); }
+    const cmp = va < vb ? -1 : va > vb ? 1 : 0;
+    return sortAsc ? cmp : -cmp;
   });
   if (!data.length) { tb.innerHTML = ''; em.style.display = 'block'; rc.textContent = ''; return; }
   em.style.display = 'none';
