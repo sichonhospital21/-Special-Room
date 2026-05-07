@@ -222,18 +222,32 @@ function showLoading(on) {
   document.getElementById('loading-bar').style.display = on ? 'block' : 'none';
 }
 
+function parseDate(d) {
+  if (!d) return null;
+  const s = String(d);
+  // ISO format from Google Sheets e.g. "2026-05-06T17:00:00.000Z"
+  if (s.includes('T')) {
+    const dt = new Date(s);
+    // Use UTC date to avoid timezone shift
+    return { y: dt.getUTCFullYear(), m: dt.getUTCMonth()+1, d: dt.getUTCDate() };
+  }
+  // Normal YYYY-MM-DD
+  const p = s.split('-');
+  if (p.length === 3) return { y: parseInt(p[0]), m: parseInt(p[1]), d: parseInt(p[2]) };
+  return null;
+}
+
 function fmtDate(d) {
-  if (!d) return '-';
-  const p = String(d).split('-');
-  if (p.length < 3) return d;
+  const dt = parseDate(d);
+  if (!dt) return '-';
   const m = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
-  return p[2] + ' ' + m[parseInt(p[1])-1] + ' ' + (parseInt(p[0])+543);
+  return String(dt.d).padStart(2,'0') + ' ' + m[dt.m-1] + ' ' + (dt.y+543);
 }
 
 function fmtDateXL(d) {
-  if (!d) return '-';
-  const p = String(d).split('-');
-  return p[2] + '/' + p[1] + '/' + (parseInt(p[0])+543);
+  const dt = parseDate(d);
+  if (!dt) return '-';
+  return String(dt.d).padStart(2,'0') + '/' + String(dt.m).padStart(2,'0') + '/' + (dt.y+543);
 }
 
 function srcLabel(s) {
