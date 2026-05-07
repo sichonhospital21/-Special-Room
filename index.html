@@ -225,10 +225,10 @@ function showLoading(on) {
 function parseDate(d) {
   if (!d) return null;
   const s = String(d);
-  // ISO format from Google Sheets e.g. "2026-05-06T17:00:00.000Z"
+  // ISO format from Google Sheets e.g. "2026-05-07T00:00:00.000Z"
+  // Add 7 hours for Thailand timezone (UTC+7) before extracting date
   if (s.includes('T')) {
-    const dt = new Date(s);
-    // Use UTC date to avoid timezone shift
+    const dt = new Date(new Date(s).getTime() + 7*60*60*1000);
     return { y: dt.getUTCFullYear(), m: dt.getUTCMonth()+1, d: dt.getUTCDate() };
   }
   // Normal YYYY-MM-DD
