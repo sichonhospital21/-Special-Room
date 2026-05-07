@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ระบบจองห้องพิเศษ — โรงพยาบาลสิชล</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Sarabun', sans-serif; background: #f4f6f4; min-height: 100vh; padding: 16px; }
+  .container { max-width: 860px; margin: 0 auto; }
+  .wrap { border: 1px solid #d0e0d0; border-radius: 14px; overflow: hidden; background: white; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+  .hdr { background: linear-gradient(135deg, #2d7a3a, #1f5c28); color: white; padding: 18px 22px; display: flex; align-items: center; gap: 14px; }
+  .hdr-icon { width: 48px; height: 48px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
+  .hdr h1 { font-size: 18px; font-weight: 700; }
+  .hdr p { font-size: 12px; opacity: 0.85; margin-top: 2px; }
+  .tabs { display: flex; background: white; border-bottom: 1px solid #e0e0e0; }
+  .tab { flex: 1; padding: 13px 8px; text-align: center; font-size: 14px; cursor: pointer; color: #666; border-bottom: 3px solid transparent; transition: all 0.15s; font-family: 'Sarabun', sans-serif; background: none; border-top: none; border-left: none; border-right: none; }
+  .tab.active { color: #2d7a3a; border-bottom-color: #2d7a3a; font-weight: 600; }
+  .tab:hover:not(.active) { background: #f5faf5; }
+  .body { padding: 20px; background: white; }
+  .sec { display: none; }
+  .sec.active { display: block; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .fg { margin-bottom: 14px; }
+  .fg label { display: block; font-size: 13px; color: #555; margin-bottom: 5px; font-weight: 600; }
+  .fg input, .fg select, .fg textarea {
+    width: 100%; padding: 9px 12px; border: 1px solid #ccc; border-radius: 8px;
+    font-size: 14px; background: white; color: #222; font-family: 'Sarabun', sans-serif;
+    transition: border-color 0.15s;
+  }
+  .fg input:focus, .fg select:focus, .fg textarea:focus { outline: none; border-color: #2d7a3a; box-shadow: 0 0 0 3px rgba(45,122,58,0.12); }
+  .fg textarea { resize: none; height: 64px; }
+  .multi-select { border: 1px solid #ccc; border-radius: 8px; overflow: hidden; }
+  .ms-opt { display: flex; align-items: center; gap: 10px; padding: 9px 12px; cursor: pointer; font-size: 14px; border-bottom: 1px solid #eee; transition: background 0.1s; }
+  .ms-opt:last-child { border-bottom: none; }
+  .ms-opt:hover { background: #f0faf2; }
+  .ms-opt input[type=checkbox] { accent-color: #2d7a3a; width: 16px; height: 16px; cursor: pointer; }
+  .tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+  .tag { background: #e0f5e5; color: #1a5c25; font-size: 12px; padding: 3px 10px; border-radius: 20px; display: flex; align-items: center; gap: 5px; }
+  .tag button { background: none; border: none; cursor: pointer; color: #1a5c25; font-size: 14px; line-height: 1; padding: 0; }
+  .src-opts { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 6px; }
+  .src-opt { display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 14px; }
+  .src-opt input { accent-color: #2d7a3a; }
+  .btn-primary { width: 100%; padding: 11px; background: #2d7a3a; color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; font-family: 'Sarabun', sans-serif; transition: background 0.15s; margin-top: 4px; }
+  .btn-primary:hover { background: #1f5c28; }
+  .btn-primary:active { transform: scale(0.99); }
+  .btn-excel { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 10px; background: #1a5c9e; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Sarabun', sans-serif; transition: background 0.15s; margin-bottom: 14px; }
+  .btn-excel:hover { background: #0C447C; }
+  .alert { padding: 10px 14px; border-radius: 8px; font-size: 14px; margin-bottom: 14px; display: none; }
+  .alert-ok { background: #e0f5e5; color: #1a5c25; border: 1px solid #80c890; }
+  .alert-err { background: #fdecea; color: #7a1a1a; border: 1px solid #f09595; }
+  .divider { border: none; border-top: 1px solid #eee; margin: 14px 0; }
+  .tbl-wrap { overflow-x: auto; }
+  table.list { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.list th { background: #2d7a3a; color: white; padding: 9px 8px; text-align: left; font-weight: 600; white-space: nowrap; }
+  table.list td { padding: 8px; border-bottom: 1px solid #eee; color: #222; vertical-align: top; }
+  table.list tr:hover td { background: #f5faf5; }
+  .badge-fb { background: #dbeafe; color: #1e40af; font-size: 11px; padding: 2px 7px; border-radius: 10px; white-space: nowrap; }
+  .badge-cnt { background: #dcfce7; color: #166534; font-size: 11px; padding: 2px 7px; border-radius: 10px; white-space: nowrap; }
+  .badge-other { background: #f3f4f6; color: #374151; font-size: 11px; padding: 2px 7px; border-radius: 10px; white-space: nowrap; }
+  .btn-receipt { background: white; border: 1px solid #2d7a3a; border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 12px; color: #2d7a3a; font-family: 'Sarabun', sans-serif; display: block; width: 100%; margin-bottom: 4px; }
+  .btn-receipt:hover { background: #e0f5e5; }
+  .btn-del { background: white; border: 1px solid #ccc; border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 12px; color: #a32d2d; font-family: 'Sarabun', sans-serif; display: block; width: 100%; }
+  .btn-del:hover { background: #fdecea; }
+  .empty { text-align: center; padding: 40px; color: #999; font-size: 14px; }
+  .empty-icon { font-size: 40px; display: block; margin-bottom: 10px; opacity: 0.4; }
+  .section-title { font-size: 15px; font-weight: 600; color: #2d7a3a; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #e0f5e5; }
+  @media (max-width: 600px) {
+    .row2, .row3 { grid-template-columns: 1fr; }
+    body { padding: 8px; }
+    .hdr h1 { font-size: 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+<div class="wrap">
+  <div class="hdr">
+    <div class="hdr-icon">🏥</div>
+    <div>
+      <h1>โรงพยาบาลสิชล</h1>
+      <p>ระบบจองห้องพิเศษผู้ป่วยใน — เคาน์เตอร์ประชาสัมพันธ์</p>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="sw('form')">📋 บันทึกการจอง</button>
+    <button class="tab" onclick="sw('list')">📄 รายการจอง</button>
+  </div>
+  <div class="body">
+    <div id="alert-box" class="alert"></div>
+
+    <!-- ฟอร์มบันทึก -->
+    <div id="sec-form" class="sec active">
+      <div class="section-title">ข้อมูลผู้ป่วย</div>
+      <div class="row2">
+        <div class="fg"><label>HN</label><input type="text" id="hn" placeholder="เช่น 0216754"></div>
+        <div class="fg"><label>ชื่อ-นามสกุล</label><input type="text" id="pname" placeholder="เช่น นาย สมชาย ใจดี"></div>
+      </div>
+      <div class="row3">
+        <div class="fg"><label>วันที่จอง</label><input type="date" id="dbook"></div>
+        <div class="fg"><label>วันที่ Admit</label><input type="date" id="dadmit"></div>
+        <div class="fg"><label>แพทย์ผู้นัด</label><input type="text" id="doctor" placeholder="เช่น นพ.ชนาธิป"></div>
+      </div>
+      <div class="fg">
+        <label>ประเภทห้องพิเศษ (เลือกได้หลายรายการ)</label>
+        <div class="multi-select" id="room-opts">
+          <label class="ms-opt"><input type="checkbox" value="พิเศษรวมพัดลม"> พิเศษรวมพัดลม</label>
+          <label class="ms-opt"><input type="checkbox" value="พิเศษรวมปรับอากาศ"> พิเศษรวมปรับอากาศ</label>
+          <label class="ms-opt"><input type="checkbox" value="ห้องพิเศษมาตรฐานอาคารผู้ป่วยใน"> ห้องพิเศษมาตรฐานอาคารผู้ป่วยใน</label>
+          <label class="ms-opt"><input type="checkbox" value="ห้องพิเศษเดี่ยว1"> ห้องพิเศษเดี่ยว1</label>
+          <label class="ms-opt"><input type="checkbox" value="ห้องพิเศษเดี่ยว2"> ห้องพิเศษเดี่ยว2</label>
+          <label class="ms-opt"><input type="checkbox" value="ห้องพิเศษ VIP"> ห้องพิเศษ VIP</label>
+        </div>
+        <div class="tags" id="room-tags"></div>
+      </div>
+      <div class="row2">
+        <div class="fg"><label>หัตถการ / สาเหตุที่นัด</label><input type="text" id="reason" placeholder="เช่น ส่องกล้อง, ผ่าตัด..."></div>
+        <div class="fg"><label>เบอร์ติดต่อ</label><input type="text" id="phone" placeholder="เช่น 087-0000000"></div>
+      </div>
+      <hr class="divider">
+      <div class="fg">
+        <label>ช่องทางการจอง</label>
+        <div class="src-opts">
+          <label class="src-opt"><input type="radio" name="src" value="counter" checked> เคาน์เตอร์ประชาสัมพันธ์</label>
+          <label class="src-opt"><input type="radio" name="src" value="fb"> Facebook</label>
+          <label class="src-opt"><input type="radio" name="src" value="other"> อื่นๆ</label>
+        </div>
+      </div>
+      <div class="fg"><label>หมายเหตุเพิ่มเติม</label><textarea id="note" placeholder="ระบุรายละเอียดเพิ่มเติม (ถ้ามี)"></textarea></div>
+      <button class="btn-primary" onclick="saveBooking()">💾 บันทึกการจอง</button>
+    </div>
+
+    <!-- รายการจอง -->
+    <div id="sec-list" class="sec">
+      <button class="btn-excel" onclick="exportExcel()">
+        📊 ดาวน์โหลดรายการจองทั้งหมด (.xlsx)
+      </button>
+      <div class="tbl-wrap">
+        <table class="list">
+          <thead>
+            <tr>
+              <th>HN</th>
+              <th>ชื่อ-นามสกุล</th>
+              <th>วันที่จอง</th>
+              <th>วันที่ Admit</th>
+              <th>ประเภทห้องพิเศษ</th>
+              <th>แพทย์ผู้นัด</th>
+              <th>หัตถการ/สาเหตุ</th>
+              <th>เบอร์ติดต่อ</th>
+              <th>หมายเหตุ</th>
+              <th>จัดการ</th>
+            </tr>
+          </thead>
+          <tbody id="tbl-body"></tbody>
+        </table>
+        <div id="empty-state" class="empty">
+          <span class="empty-icon">📅</span>
+          ยังไม่มีรายการจอง
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- template ใบหลักฐาน -->
+<div id="receipt-tpl" style="position:fixed;left:-9999px;top:0;width:720px;background:white;font-family:'Sarabun',sans-serif;padding:0;z-index:-1"></div>
+
+<script>
+let data = [];
+try { data = JSON.parse(localStorage.getItem('sichon_v2') || '[]'); } catch(e) {}
+
+function fmtDate(d) {
+  if (!d) return '-';
+  const p = d.split('-');
+  const m = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  return p[2] + ' ' + m[parseInt(p[1])-1] + ' ' + (parseInt(p[0])+543);
+}
+
+function fmtDateXL(d) {
+  if (!d) return '-';
+  const p = d.split('-');
+  return p[2] + '/' + p[1] + '/' + (parseInt(p[0])+543);
+}
+
+function srcLabel(s) {
+  if (s === 'fb') return 'Facebook';
+  if (s === 'counter') return 'เคาน์เตอร์ประชาสัมพันธ์';
+  return 'อื่นๆ';
+}
+
+function srcBadge(s) {
+  if (s === 'fb') return '<span class="badge-fb">FB</span>';
+  if (s === 'counter') return '<span class="badge-cnt">เคาน์เตอร์</span>';
+  return '<span class="badge-other">อื่นๆ</span>';
+}
+
+function saveBooking() {
+  const hn = document.getElementById('hn').value.trim();
+  const pname = document.getElementById('pname').value.trim();
+  const dbook = document.getElementById('dbook').value;
+  const dadmit = document.getElementById('dadmit').value;
+  const doctor = document.getElementById('doctor').value.trim();
+  const reason = document.getElementById('reason').value.trim();
+  const phone = document.getElementById('phone').value.trim();
+  const note = document.getElementById('note').value.trim();
+  const src = document.querySelector('input[name=src]:checked').value;
+  const rooms = [...document.querySelectorAll('#room-opts input:checked')].map(c => c.value);
+
+  if (!hn) return showAlert('กรุณากรอก HN', 'err');
+  if (!pname) return showAlert('กรุณากรอกชื่อ-นามสกุล', 'err');
+  if (!dbook || !dadmit) return showAlert('กรุณากรอกวันที่', 'err');
+  if (!rooms.length) return showAlert('กรุณาเลือกประเภทห้อง', 'err');
+
+  data.unshift({ id: Date.now(), hn, pname, dbook, dadmit, doctor, rooms, reason, phone, note, src });
+  try { localStorage.setItem('sichon_v2', JSON.stringify(data)); } catch(e) {}
+
+  ['hn','pname','dbook','dadmit','doctor','reason','phone','note'].forEach(id => document.getElementById(id).value = '');
+  document.querySelector('input[name=src][value=counter]').checked = true;
+  document.querySelectorAll('#room-opts input').forEach(c => c.checked = false);
+  renderTags();
+  document.getElementById('dbook').value = new Date().toISOString().split('T')[0];
+  showAlert('✅ บันทึกการจองเรียบร้อย — ไปที่แท็บ "รายการจอง" เพื่อดาวน์โหลดใบหลักฐาน', 'ok');
+}
+
+function del(id) {
+  if (!confirm('ยืนยันการลบรายการนี้?')) return;
+  data = data.filter(d => d.id !== id);
+  try { localStorage.setItem('sichon_v2', JSON.stringify(data)); } catch(e) {}
+  renderList();
+}
+
+function exportExcel() {
+  if (!data.length) return showAlert('ยังไม่มีรายการจอง', 'err');
+  const rows = data.map((r, i) => ({
+    'ลำดับ': i + 1,
+    'HN': r.hn,
+    'ชื่อ-นามสกุล': r.pname,
+    'วันที่จอง': fmtDateXL(r.dbook),
+    'วันที่ Admit': fmtDateXL(r.dadmit),
+    'ประเภทห้องพิเศษ': (r.rooms || []).join(', '),
+    'แพทย์ผู้นัด': r.doctor || '-',
+    'หัตถการ/สาเหตุที่นัด': r.reason || '-',
+    'เบอร์ติดต่อ': r.phone || '-',
+    'ช่องทางการจอง': srcLabel(r.src),
+    'หมายเหตุ': r.note || '-'
+  }));
+  const ws = XLSX.utils.json_to_sheet(rows);
+  ws['!cols'] = [{wch:6},{wch:12},{wch:22},{wch:14},{wch:14},{wch:32},{wch:18},{wch:24},{wch:14},{wch:24},{wch:22}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'รายการจองห้องพิเศษ');
+  const d = new Date();
+  const fname = 'รายการจองห้องพิเศษ_โรงพยาบาลสิชล_' + d.toLocaleDateString('th-TH').replace(/\//g, '-') + '.xlsx';
+  XLSX.writeFile(wb, fname);
+  showAlert('✅ ดาวน์โหลด Excel เรียบร้อยแล้ว', 'ok');
+}
+
+function downloadReceipt(id) {
+  const r = data.find(d => d.id === id);
+  if (!r) return;
+  const refNo = 'REF-' + String(r.id).slice(-6);
+  const tpl = document.getElementById('receipt-tpl');
+  tpl.innerHTML = `
+  <div style="width:720px;background:white;padding:0;font-family:'Sarabun',sans-serif">
+    <div style="background:linear-gradient(135deg,#2d7a3a,#1f5c28);padding:28px 36px;display:flex;align-items:center;gap:18px">
+      <div style="width:60px;height:60px;background:rgba(255,255,255,0.25);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:30px">🏥</div>
+      <div>
+        <div style="color:white;font-size:22px;font-weight:700">โรงพยาบาลสิชล</div>
+        <div style="color:rgba(255,255,255,0.85);font-size:14px;margin-top:3px">ใบยืนยันการจองห้องพิเศษผู้ป่วยใน</div>
+      </div>
+      <div style="margin-left:auto;text-align:right">
+        <div style="color:rgba(255,255,255,0.7);font-size:12px">เลขที่อ้างอิง</div>
+        <div style="color:white;font-size:18px;font-weight:700">${refNo}</div>
+      </div>
+    </div>
+    <div style="padding:32px 36px">
+      <div style="background:#f0faf3;border:1.5px solid #a8d5b5;border-radius:12px;padding:22px 26px;margin-bottom:22px">
+        <div style="font-size:14px;color:#2d7a3a;margin-bottom:14px;font-weight:700;border-bottom:1px solid #c0e5cc;padding-bottom:8px">👤 ข้อมูลผู้ป่วย</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div><div style="font-size:11px;color:#888;margin-bottom:4px">HN</div><div style="font-size:16px;font-weight:700;color:#111">${r.hn}</div></div>
+          <div><div style="font-size:11px;color:#888;margin-bottom:4px">ชื่อ-นามสกุล</div><div style="font-size:16px;font-weight:700;color:#111">${r.pname}</div></div>
+          <div><div style="font-size:11px;color:#888;margin-bottom:4px">เบอร์ติดต่อ</div><div style="font-size:14px;color:#111">${r.phone||'-'}</div></div>
+          <div><div style="font-size:11px;color:#888;margin-bottom:4px">แพทย์ผู้นัด</div><div style="font-size:14px;color:#111">${r.doctor||'-'}</div></div>
+        </div>
+      </div>
+      <div style="background:#fffbf0;border:1.5px solid #f0d080;border-radius:12px;padding:22px 26px;margin-bottom:22px">
+        <div style="font-size:14px;color:#9a6000;margin-bottom:14px;font-weight:700;border-bottom:1px solid #f0d080;padding-bottom:8px">🗓️ รายละเอียดการจอง</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div><div style="font-size:11px;color:#888;margin-bottom:4px">วันที่จอง</div><div style="font-size:14px;color:#111">${fmtDate(r.dbook)}</div></div>
+          <div><div style="font-size:11px;color:#888;margin-bottom:4px">วันที่ Admit</div><div style="font-size:18px;font-weight:700;color:#c07800">${fmtDate(r.dadmit)}</div></div>
+          <div style="grid-column:span 2">
+            <div style="font-size:11px;color:#888;margin-bottom:8px">ประเภทห้องพิเศษที่จอง</div>
+            <div style="display:flex;flex-wrap:wrap;gap:7px">${(r.rooms||[]).map(rm=>`<span style="background:#2d7a3a;color:white;font-size:13px;padding:4px 14px;border-radius:20px">${rm}</span>`).join('')}</div>
+          </div>
+          <div style="grid-column:span 2"><div style="font-size:11px;color:#888;margin-bottom:4px">หัตถการ / สาเหตุที่นัด</div><div style="font-size:14px;color:#111">${r.reason||'-'}</div></div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:22px">
+        <div style="background:#f5f5f5;border-radius:10px;padding:16px 20px">
+          <div style="font-size:11px;color:#888;margin-bottom:4px">ช่องทางการจอง</div>
+          <div style="font-size:14px;font-weight:600;color:#111">${srcLabel(r.src)}</div>
+        </div>
+        <div style="background:#f5f5f5;border-radius:10px;padding:16px 20px">
+          <div style="font-size:11px;color:#888;margin-bottom:4px">หมายเหตุ</div>
+          <div style="font-size:14px;color:#111">${r.note||'-'}</div>
+        </div>
+      </div>
+      <div style="border-top:1.5px dashed #ddd;padding-top:16px;display:flex;justify-content:space-between;align-items:center">
+        <div style="font-size:12px;color:#aaa">พิมพ์โดยระบบจองห้องพิเศษ โรงพยาบาลสิชล</div>
+        <div style="font-size:12px;color:#aaa">วันที่พิมพ์: ${new Date().toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'})}</div>
+      </div>
+    </div>
+  </div>`;
+
+  showAlert('⏳ กำลังสร้างใบหลักฐาน...', 'ok');
+  setTimeout(() => {
+    html2canvas(tpl, { scale: 2, useCORS: true, backgroundColor: '#ffffff', width: 720 }).then(canvas => {
+      const link = document.createElement('a');
+      link.download = 'ใบหลักฐานจองห้อง_' + r.hn + '_' + r.pname + '.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      tpl.innerHTML = '';
+      showAlert('✅ ดาวน์โหลดใบหลักฐานเรียบร้อยแล้ว', 'ok');
+    }).catch(() => {
+      showAlert('❌ เกิดข้อผิดพลาด กรุณาลองใหม่', 'err');
+    });
+  }, 300);
+}
+
+function renderList() {
+  const tb = document.getElementById('tbl-body');
+  const em = document.getElementById('empty-state');
+  if (!data.length) { tb.innerHTML = ''; em.style.display = 'block'; return; }
+  em.style.display = 'none';
+  tb.innerHTML = data.map(r => `<tr>
+    <td><strong>${r.hn}</strong></td>
+    <td>${r.pname}</td>
+    <td>${fmtDate(r.dbook)}</td>
+    <td style="color:#c07800;font-weight:600">${fmtDate(r.dadmit)}</td>
+    <td>${(r.rooms||[]).join('<br>')}</td>
+    <td>${r.doctor||'-'}</td>
+    <td>${r.reason||'-'}</td>
+    <td>${r.phone||'-'}</td>
+    <td>${srcBadge(r.src)}${r.note ? '<br><span style="font-size:12px;color:#666">'+r.note+'</span>' : ''}</td>
+    <td style="min-width:90px">
+      <button class="btn-receipt" onclick="downloadReceipt(${r.id})">🖼️ ใบหลักฐาน</button>
+      <button class="btn-del" onclick="del(${r.id})">🗑️ ลบ</button>
+    </td>
+  </tr>`).join('');
+}
+
+function renderTags() {
+  const tags = document.getElementById('room-tags');
+  tags.innerHTML = [...document.querySelectorAll('#room-opts input:checked')].map(c =>
+    `<span class="tag">${c.value}<button onclick="unchk('${c.value}')" aria-label="ลบ">×</button></span>`
+  ).join('');
+}
+
+function unchk(val) {
+  const cb = [...document.querySelectorAll('#room-opts input')].find(c => c.value === val);
+  if (cb) { cb.checked = false; renderTags(); }
+}
+
+document.querySelectorAll('#room-opts input').forEach(c => c.addEventListener('change', renderTags));
+
+function sw(tab) {
+  document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', ['form','list'][i] === tab));
+  document.querySelectorAll('.sec').forEach(s => s.classList.remove('active'));
+  document.getElementById('sec-' + tab).classList.add('active');
+  if (tab === 'list') renderList();
+}
+
+function showAlert(msg, type) {
+  const el = document.getElementById('alert-box');
+  el.className = 'alert alert-' + (type === 'ok' ? 'ok' : 'err');
+  el.textContent = msg;
+  el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; }, 4000);
+}
+
+document.getElementById('dbook').value = new Date().toISOString().split('T')[0];
+</script>
+</body>
+</html>
