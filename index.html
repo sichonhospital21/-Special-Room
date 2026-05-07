@@ -404,13 +404,13 @@ function renderList() {
   const q = (document.getElementById('search-input')?.value || '').trim().toLowerCase();
   let filtered = data.filter(r => {
     if (!q) return true;
-    return (r.hn||'').toLowerCase().includes(q)
-      || (r.pname||'').toLowerCase().includes(q)
-      || (r.doctor||'').toLowerCase().includes(q)
-      || (r.reason||'').toLowerCase().includes(q)
-      || (r.phone||'').toLowerCase().includes(q)
-      || (r.note||'').toLowerCase().includes(q)
-      || (r.rooms||[]).join(' ').toLowerCase().includes(q);
+    const fields = [
+      r.hn, r.pname, r.doctor, r.reason, r.phone, r.note, r.src,
+      Array.isArray(r.rooms) ? r.rooms.join(' ') : String(r.rooms||''),
+      srcLabel(r.src),
+      fmtDate(r.dbook), fmtDate(r.dadmit)
+    ];
+    return fields.some(f => String(f||'').toLowerCase().includes(q));
   });
   filtered.sort((a, b) => {
     let va = a[sortKey] || '', vb = b[sortKey] || '';
