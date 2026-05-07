@@ -71,10 +71,25 @@
   .badge-fb { background: #dbeafe; color: #1e40af; font-size: 11px; padding: 2px 7px; border-radius: 10px; }
   .badge-cnt { background: #dcfce7; color: #166534; font-size: 11px; padding: 2px 7px; border-radius: 10px; }
   .badge-other { background: #f3f4f6; color: #374151; font-size: 11px; padding: 2px 7px; border-radius: 10px; }
+  .btn-edit { background: white; border: 1px solid #1a5c9e; border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 12px; color: #1a5c9e; font-family: 'Sarabun', sans-serif; display: block; width: 100%; margin-bottom: 4px; }
+  .btn-edit:hover { background: #dbeafe; }
   .btn-receipt { background: white; border: 1px solid #2d7a3a; border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 12px; color: #2d7a3a; font-family: 'Sarabun', sans-serif; display: block; width: 100%; margin-bottom: 4px; }
   .btn-receipt:hover { background: #e0f5e5; }
   .btn-del { background: white; border: 1px solid #ccc; border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 12px; color: #a32d2d; font-family: 'Sarabun', sans-serif; display: block; width: 100%; }
   .btn-del:hover { background: #fdecea; }
+  .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 999; align-items: center; justify-content: center; padding: 16px; }
+  .modal-bg.open { display: flex; }
+  .modal { background: white; border-radius: 14px; width: 100%; max-width: 620px; max-height: 90vh; overflow-y: auto; box-shadow: 0 8px 32px rgba(0,0,0,0.18); }
+  .modal-hdr { background: linear-gradient(135deg,#1a5c9e,#0C447C); color: white; padding: 16px 20px; border-radius: 14px 14px 0 0; display: flex; justify-content: space-between; align-items: center; }
+  .modal-hdr h2 { font-size: 16px; font-weight: 600; }
+  .modal-close { background: none; border: none; color: white; font-size: 22px; cursor: pointer; line-height: 1; }
+  .modal-body { padding: 20px; }
+  .modal-footer { padding: 0 20px 20px; display: flex; gap: 8px; }
+  .btn-save-edit { flex: 1; padding: 10px; background: #1a5c9e; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Sarabun', sans-serif; }
+  .btn-save-edit:hover { background: #0C447C; }
+  .btn-save-edit:disabled { background: #aaa; cursor: not-allowed; }
+  .btn-cancel-edit { padding: 10px 20px; background: white; color: #666; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; cursor: pointer; font-family: 'Sarabun', sans-serif; }
+  .btn-cancel-edit:hover { background: #f5f5f5; }
   .empty { text-align: center; padding: 40px; color: #999; font-size: 14px; }
   .empty-icon { font-size: 40px; display: block; margin-bottom: 10px; opacity: 0.4; }
   .section-title { font-size: 15px; font-weight: 600; color: #2d7a3a; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #e0f5e5; }
@@ -182,6 +197,55 @@
     </div>
   </div>
 </div>
+</div>
+
+<!-- Modal แก้ไข -->
+<div class="modal-bg" id="edit-modal">
+  <div class="modal">
+    <div class="modal-hdr">
+      <h2>✏️ แก้ไขข้อมูลการจอง</h2>
+      <button class="modal-close" onclick="closeEdit()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="row2">
+        <div class="fg"><label>HN</label><input type="text" id="e-hn"></div>
+        <div class="fg"><label>ชื่อ-นามสกุล</label><input type="text" id="e-pname"></div>
+      </div>
+      <div class="row3">
+        <div class="fg"><label>วันที่จอง</label><input type="date" id="e-dbook"></div>
+        <div class="fg"><label>วันที่ Admit</label><input type="date" id="e-dadmit"></div>
+        <div class="fg"><label>แพทย์ผู้นัด</label><input type="text" id="e-doctor"></div>
+      </div>
+      <div class="fg">
+        <label>ประเภทห้องพิเศษ</label>
+        <div class="multi-select" id="e-room-opts">
+          <label class="ms-opt"><input type="checkbox" value="พิเศษรวมพัดลม"> พิเศษรวมพัดลม</label>
+          <label class="ms-opt"><input type="checkbox" value="พิเศษรวมปรับอากาศ"> พิเศษรวมปรับอากาศ</label>
+          <label class="ms-opt"><input type="checkbox" value="ห้องพิเศษมาตรฐานอาคารผู้ป่วยใน"> ห้องพิเศษมาตรฐานอาคารผู้ป่วยใน</label>
+          <label class="ms-opt"><input type="checkbox" value="ห้องพิเศษเดี่ยว1"> ห้องพิเศษเดี่ยว1</label>
+          <label class="ms-opt"><input type="checkbox" value="ห้องพิเศษเดี่ยว2"> ห้องพิเศษเดี่ยว2</label>
+          <label class="ms-opt"><input type="checkbox" value="ห้องพิเศษ VIP"> ห้องพิเศษ VIP</label>
+        </div>
+      </div>
+      <div class="row2">
+        <div class="fg"><label>หัตถการ / สาเหตุที่นัด</label><input type="text" id="e-reason"></div>
+        <div class="fg"><label>เบอร์ติดต่อ</label><input type="text" id="e-phone"></div>
+      </div>
+      <div class="fg">
+        <label>ช่องทางการจอง</label>
+        <div class="src-opts" style="margin-top:6px">
+          <label class="src-opt"><input type="radio" name="e-src" value="counter"> เคาน์เตอร์ประชาสัมพันธ์</label>
+          <label class="src-opt"><input type="radio" name="e-src" value="fb"> Facebook</label>
+          <label class="src-opt"><input type="radio" name="e-src" value="other"> อื่นๆ</label>
+        </div>
+      </div>
+      <div class="fg"><label>หมายเหตุเพิ่มเติม</label><textarea id="e-note"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel-edit" onclick="closeEdit()">ยกเลิก</button>
+      <button class="btn-save-edit" id="btn-save-edit" onclick="saveEdit()">💾 บันทึกการแก้ไข</button>
+    </div>
+  </div>
 </div>
 
 <div id="receipt-tpl" style="position:fixed;left:-9999px;top:0;width:720px;background:white;font-family:'Sarabun',sans-serif;padding:0;z-index:-1"></div>
@@ -433,6 +497,7 @@ function renderList() {
     <td>${r.phone||'-'}</td>
     <td>${srcBadge(r.src)}${r.note?'<br><span style="font-size:12px;color:#666">'+r.note+'</span>':''}</td>
     <td style="min-width:90px">
+      <button class="btn-edit" onclick="openEdit('${r.id}')">✏️ แก้ไข</button>
       <button class="btn-receipt" onclick="downloadReceipt('${r.id}')">🖼️ ใบหลักฐาน</button>
       <button class="btn-del" onclick="del('${r.id}')">🗑️ ลบ</button>
     </td>
@@ -442,6 +507,80 @@ function renderList() {
 function clearSearch() {
   document.getElementById('search-input').value = '';
   renderList();
+}
+
+let editingId = null;
+
+function openEdit(id) {
+  const r = data.find(d => String(d.id) === String(id));
+  if (!r) return;
+  editingId = id;
+  document.getElementById('e-hn').value = r.hn || '';
+  document.getElementById('e-pname').value = r.pname || '';
+  document.getElementById('e-doctor').value = r.doctor || '';
+  document.getElementById('e-reason').value = r.reason || '';
+  document.getElementById('e-phone').value = r.phone || '';
+  document.getElementById('e-note').value = r.note || '';
+  // วันที่
+  const toInputDate = (d) => {
+    const dt = parseDate(d);
+    if (!dt) return '';
+    return dt.y + '-' + String(dt.m).padStart(2,'0') + '-' + String(dt.d).padStart(2,'0');
+  };
+  document.getElementById('e-dbook').value = toInputDate(r.dbook);
+  document.getElementById('e-dadmit').value = toInputDate(r.dadmit);
+  // ห้อง
+  document.querySelectorAll('#e-room-opts input').forEach(c => {
+    c.checked = (r.rooms||[]).includes(c.value);
+  });
+  // ช่องทาง
+  const srcEl = document.querySelector(`input[name=e-src][value="${r.src}"]`);
+  if (srcEl) srcEl.checked = true;
+  else document.querySelector('input[name=e-src][value=counter]').checked = true;
+  document.getElementById('edit-modal').classList.add('open');
+}
+
+function closeEdit() {
+  editingId = null;
+  document.getElementById('edit-modal').classList.remove('open');
+}
+
+async function saveEdit() {
+  if (!editingId) return;
+  const hn = document.getElementById('e-hn').value.trim();
+  const pname = document.getElementById('e-pname').value.trim();
+  const dbook = document.getElementById('e-dbook').value;
+  const dadmit = document.getElementById('e-dadmit').value;
+  const doctor = document.getElementById('e-doctor').value.trim();
+  const reason = document.getElementById('e-reason').value.trim();
+  const phone = document.getElementById('e-phone').value.trim();
+  const note = document.getElementById('e-note').value.trim();
+  const src = document.querySelector('input[name=e-src]:checked')?.value || 'counter';
+  const rooms = [...document.querySelectorAll('#e-room-opts input:checked')].map(c => c.value);
+
+  if (!hn) return showAlert('กรุณากรอก HN', 'err');
+  if (!pname) return showAlert('กรุณากรอกชื่อ-นามสกุล', 'err');
+  if (!rooms.length) return showAlert('กรุณาเลือกประเภทห้อง', 'err');
+
+  const btn = document.getElementById('btn-save-edit');
+  btn.disabled = true; btn.textContent = '⏳ กำลังบันทึก...';
+  showLoading(true);
+
+  try {
+    await fetch(GAS_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'update', id: editingId, hn, pname, dbook, dadmit, doctor, rooms, reason, phone, note, src })
+    });
+    const idx = data.findIndex(d => String(d.id) === String(editingId));
+    if (idx !== -1) data[idx] = { ...data[idx], hn, pname, dbook, dadmit, doctor, rooms, reason, phone, note, src };
+    renderList();
+    closeEdit();
+    showAlert('✅ แก้ไขข้อมูลเรียบร้อยแล้ว', 'ok');
+  } catch(e) {
+    showAlert('❌ แก้ไขไม่สำเร็จ กรุณาลองใหม่', 'err');
+  }
+  btn.disabled = false; btn.textContent = '💾 บันทึกการแก้ไข';
+  showLoading(false);
 }
 
 function renderTags() {
