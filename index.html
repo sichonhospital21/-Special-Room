@@ -388,23 +388,53 @@ async function loadData() {
 async function loadLog() {
   showLoading(true);
   try {
-    const res = await fetch(GAS_URL+'?action=log');
+    const res = await fetch(GAS_URL + '?action=log');
     const json = await res.json();
     const logs = json.logs || [];
     const tb = document.getElementById('log-body');
     const em = document.getElementById('log-empty');
-    if (!logs.length) { tb.innerHTML=''; em.style.display='block'; showLoading(false); return; }
+
+    if (!logs.length) {
+      tb.innerHTML = '';
+      em.style.display = 'block';
+      showLoading(false);
+      return;
+    }
+
     em.style.display = 'none';
-    tb.innerHTML = logs.reverse().map(l => `<tr>
-      <td style="white-space:nowrap">${l[0]}</td>
-      <td>${l[1]}</td><td>${l[2]}</td>
-      <td><span style="background:#e0f5e5;color:#1a5c25;padding:2px 8px;border-radius:10px;font-size:11px">${l[3]}</span></td>
-      <td>${l[4]}</td>
-    </tr>`).join('');
-  } catch(e) { showAlert('❌ โหลด Log ไม่สำเร็จ','err'); }
+    // ส่วนที่แก้ไข: แปลงรูปแบบวันที่และเวลาให้เป็นภาษาไทย
+    tb.innerHTML = logs.reverse().map(l => {
+      let displayDate = l[0];
+      try {
+        const d = new Date(l[0]);
+        if (!isNaN(d)) {
+          displayDate = d.toLocaleString('th-TH', {
+            year: 'numeric',
+            month: 'short',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+          }) + ' น.';
+        }
+      } catch (e) {
+        displayDate = l[0];
+      }
+
+      return `<tr>
+        <td style="white-space:nowrap">${displayDate}</td>
+        <td>${l[1]}</td>
+        <td>${l[2]}</td>
+        <td><span style="background:#e0f5e5;color:#1a5c25;padding:2px 8px;border-radius:10px;font-size:11px">${l[3]}</span></td>
+        <td>${l[4]}</td>
+      </tr>`;
+    }).join('');
+
+  } catch (e) {
+    showAlert('❌ โหลด Log ไม่สำเร็จ', 'err');
+  }
   showLoading(false);
 }
-
 function showLoading(on) { document.getElementById('loading-bar').style.display = on?'block':'none'; }
 
 // ===== SAVE =====
