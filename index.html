@@ -212,7 +212,7 @@
     <!-- รายการจอง (Admin เท่านั้น) -->
     <div id="sec-list" class="sec">
       <div class="search-bar">
-        <input type="text" id="search-input" placeholder="🔍 ค้นหา HN, ชื่อ, แพทย์, หัตถการ..." oninput="renderList()">
+        <input type="text" id="search-input" placeholder="🔍 ค้นหา HN, ชื่อ, แพทย์, หัตถการ..." oninput="debounceSearch()">
         <button onclick="clearSearch()">✖ ล้าง</button>
       </div>
       <div class="sort-bar">
@@ -319,7 +319,9 @@ let sortKey = 'id';
 let sortAsc = false;
 let editingId = null;
 let currentUser = null; // { username, name, role }
-
+let searchTimer = null;
+let searchableCache = [];
+let isLoading = false;    
 // ===== LOGIN =====
 async function doLogin() {
   const username = document.getElementById('l-user').value.trim();
@@ -435,7 +437,10 @@ async function loadLog() {
   }
   showLoading(false);
 }
-function showLoading(on) { document.getElementById('loading-bar').style.display = on?'block':'none'; }
+function showLoading(on){
+  isLoading = on;
+  document.getElementById('loading-bar').style.display = on ? 'block' : 'none';
+}
 
 // ===== SAVE =====
 async function saveBooking() {
@@ -559,6 +564,49 @@ function setSort(key){
 }
 
 function renderList(){
+  function esc(str){
+  return String(str || '')
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#039;');
+}
+
+function safeFileName(str){
+  return String(str || '')
+    .replace(/[\\/:*?"<>|]/g,'_')
+    .trim();
+}
+
+function buildSearchCache(){
+  searchableCache = data.map(r => ({
+    id: r.id,
+    text: [
+      r.hn,
+      r.pname,
+      r.doctor,
+      r.reason,
+      r.phone,
+      r.note,
+      r.src,
+      Array.isArray(r.rooms) ? r.rooms.join(' ') : '',
+      srcLabel(r.src),
+      fmtDate(r.dbook),
+      fmtDate(r.dadmit)
+    ]
+    .join(' ')
+    .toLowerCase()
+  }));
+}
+
+function debounceSearch(){
+  clearTimeout(searchTimer);
+
+  searchTimer = setTimeout(() => {
+    renderList();
+  }, 250);
+}
   const tb=document.getElementById('tbl-body');
   const em=document.getElementById('empty-state');
   const rc=document.getElementById('result-count');
