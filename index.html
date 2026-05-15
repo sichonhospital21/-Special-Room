@@ -567,61 +567,46 @@ function setSort(key){
   renderList();
 }
 
-function renderList(){
-  function esc(str){
-  return String(str || '')
-    .replace(/&/g,'&amp;')
-    .replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;')
-    .replace(/'/g,'&#039;');
-}
-
-function safeFileName(str){
-  return String(str || '')
-    .replace(/[\\/:*?"<>|]/g,'_')
-    .trim();
-}
-
+// 1. แยก buildSearchCache ออกมาอยู่ด้านนอก
 function buildSearchCache(){
   searchableCache = data.map(r => ({
     id: r.id,
     text: [
-      r.hn,
-      r.pname,
-      r.doctor,
-      r.reason,
-      r.phone,
-      r.note,
-      r.src,
-      Array.isArray(r.rooms) ? r.rooms.join(' ') : '',
-      srcLabel(r.src),
-      fmtDate(r.dbook),
-      fmtDate(r.dadmit)
-    ]
-    .join(' ')
-    .toLowerCase()
+      r.hn, r.pname, r.doctor, r.reason, r.phone, r.note, r.src,
+      Array.isArray(r.rooms)?r.rooms.join(' '):String(r.rooms||''),
+      srcLabel(r.src), fmtDate(r.dbook), fmtDate(r.dadmit)
+    ].join(' ').toLowerCase()
   }));
 }
 
+// 2. แยก debounceSearch ออกมาอยู่ด้านนอก
 function debounceSearch(){
   clearTimeout(searchTimer);
-
   searchTimer = setTimeout(() => {
     renderList();
   }, 250);
 }
+
+// 3. ฟังก์ชัน renderList ที่เป็นแบบใหม่ (STEP 8)
+function renderList(){
   const tb=document.getElementById('tbl-body');
   const em=document.getElementById('empty-state');
   const rc=document.getElementById('result-count');
   const q=(document.getElementById('search-input')?.value||'').trim().toLowerCase();
-  let filtered=data.filter(r=>{
-    if(!q)return true;
-    const fields=[r.hn,r.pname,r.doctor,r.reason,r.phone,r.note,r.src,
-        Array.isArray(r.rooms)?r.rooms.join(' '):String(r.rooms||''),
-        srcLabel(r.src),fmtDate(r.dbook),fmtDate(r.dadmit)];
-    return fields.some(f=>String(f||'').toLowerCase().includes(q));
-});
+
+  let filtered;
+  
+  // ตรรกะค้นหาแบบ Cache (เร็วขึ้นและไม่ Error แล้ว)
+  if(!q){
+    filtered = [...data];
+  }else{
+    const matchedIds = searchableCache
+        .filter(c => c.text.includes(q))
+        .map(c => String(c.id));
+
+    filtered = data.filter(r => matchedIds.includes(String(r.id)));
+  }
+
   filtered.sort((a,b)=>{let va=a[sortKey]||'',vb=b[sortKey]||'';if(sortKey==='id'){va=Number(va);vb=Number(vb);}const cmp=va<vb?-1:va>vb?1:0;return sortAsc?cmp:-cmp;});
   if(!data.length){tb.innerHTML='';em.style.display='block';rc.textContent='';return;}
   em.style.display='none';
