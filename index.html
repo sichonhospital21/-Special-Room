@@ -215,6 +215,20 @@
 
     <!-- รายการจอง (Admin เท่านั้น) -->
     <div id="sec-list" class="sec">
+      <div class="row3" style="margin-bottom: 20px;">
+  <div style="background: #e0f5e5; padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #80c890;">
+    <div style="font-size: 12px; color: #1a5c25; font-weight: 600;">วันนี้</div>
+    <div id="sum-day" style="font-size: 24px; font-weight: 700; color: #2d7a3a;">0</div>
+  </div>
+  <div style="background: #eef2ff; padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #c7d2fe;">
+    <div style="font-size: 12px; color: #3730a3; font-weight: 600;">สัปดาห์นี้</div>
+    <div id="sum-week" style="font-size: 24px; font-weight: 700; color: #4338ca;">0</div>
+  </div>
+  <div style="background: #fff7ed; padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #fed7aa;">
+    <div style="font-size: 12px; color: #9a3412; font-weight: 600;">เดือนนี้</div>
+    <div id="sum-month" style="font-size: 24px; font-weight: 700; color: #c2410c;">0</div>
+  </div>
+</div>
       <div class="search-bar">
         <input type="text" id="search-input" placeholder="🔍 ค้นหา HN, ชื่อ, แพทย์, หัตถการ..." oninput="debounceSearch()">
         <button onclick="clearSearch()">✖ ล้าง</button>
@@ -599,8 +613,7 @@ function renderList(){
   const q=(document.getElementById('search-input')?.value||'').trim().toLowerCase();
 
   let filtered;
-  
-  // ตรรกะค้นหาแบบ Cache (เร็วขึ้นและไม่ Error แล้ว)
+
   if(!q){
     filtered = [...data];
   }else{
@@ -616,6 +629,7 @@ function renderList(){
   em.style.display='none';
   rc.textContent=q?`พบ ${filtered.length} รายการ จากทั้งหมด ${data.length} รายการ`:`ทั้งหมด ${data.length} รายการ`;
   if(!filtered.length){tb.innerHTML=`<tr><td colspan="10" style="text-align:center;padding:24px;color:#999">ไม่พบรายการที่ค้นหา</td></tr>`;return;}
+  
   tb.innerHTML=filtered.map(r=>`<tr>
     <td><strong>${r.hn}</strong></td><td>${r.pname}</td>
     <td>${fmtDate(r.dbook)}</td>
@@ -629,9 +643,38 @@ function renderList(){
       <button class="btn-del" onclick="del('${r.id}')">🗑️ ลบ</button>
     </td>
   </tr>`).join('');
-}
 
-function clearSearch(){document.getElementById('search-input').value='';renderList();}
+  // --- ส่วนคำนวณ Dashboard (ใส่ไว้ตรงนี้ถูกต้องที่สุด) ---
+  const now = new Date();
+  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  
+  // หาวันจันทร์ของสัปดาห์นี้
+  const diff = now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1);
+  const startOfWeek = new Date(now.setDate(diff)).setHours(0,0,0,0);
+  
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+
+  let countDay = 0, countWeek = 0, countMonth = 0;
+
+  data.forEach(r => {
+    const d = parseDate(r.dbook); // ใช้ดึงจากวันที่จอง
+    if(!d) return;
+    const itemTime = new Date(d.y, d.m-1, d.d).getTime();
+
+    if(itemTime >= startOfDay) countDay++;
+    if(itemTime >= startOfWeek) countWeek++;
+    if(itemTime >= startOfMonth) countMonth++;
+  });
+
+  const sumDayEl = document.getElementById('sum-day');
+  const sumWeekEl = document.getElementById('sum-week');
+  const sumMonthEl = document.getElementById('sum-month');
+
+  if(sumDayEl) sumDayEl.textContent = countDay;
+  if(sumWeekEl) sumWeekEl.textContent = countWeek;
+  if(sumMonthEl) sumMonthEl.textContent = countMonth;
+  // ------------------------------------------------
+}
 
 // ===== EXCEL =====
 function exportExcel(){
