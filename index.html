@@ -371,6 +371,9 @@ function setupTabs() {
 
 // ===== DATA =====
 async function loadData() {
+  if (isLoading) {
+  return;
+}
   showLoading(true);
   try {
     const res = await fetch(GAS_URL);
@@ -381,6 +384,7 @@ async function loadData() {
       rooms: typeof r.rooms==='string' ? r.rooms.split(', ').filter(Boolean) : (r.rooms||[]),
       reason: r.reason, phone: r.phone, note: r.note, src: r.src
     }));
+    buildSearchCache();
     renderList();
     showAlert('✅ โหลดข้อมูลสำเร็จ '+data.length+' รายการ','ok');
   } catch(e) { showAlert('❌ โหลดข้อมูลไม่สำเร็จ','err'); }
@@ -611,13 +615,19 @@ function debounceSearch(){
   const em=document.getElementById('empty-state');
   const rc=document.getElementById('result-count');
   const q=(document.getElementById('search-input')?.value||'').trim().toLowerCase();
-  let filtered=data.filter(r=>{
-    if(!q)return true;
-    const fields=[r.hn,r.pname,r.doctor,r.reason,r.phone,r.note,r.src,
-      Array.isArray(r.rooms)?r.rooms.join(' '):String(r.rooms||''),
-      srcLabel(r.src),fmtDate(r.dbook),fmtDate(r.dadmit)];
-    return fields.some(f=>String(f||'').toLowerCase().includes(q));
-  });
+  let filtered;
+
+if(!q){
+    filtered = [...data];
+}else{
+    const matchedIds = searchableCache
+        .filter(c => c.text.includes(q))
+        .map(c => String(c.id));
+
+    filtered = data.filter(r => 
+        matchedIds.includes(String(r.id))
+    );
+}
   filtered.sort((a,b)=>{let va=a[sortKey]||'',vb=b[sortKey]||'';if(sortKey==='id'){va=Number(va);vb=Number(vb);}const cmp=va<vb?-1:va>vb?1:0;return sortAsc?cmp:-cmp;});
   if(!data.length){tb.innerHTML='';em.style.display='block';rc.textContent='';return;}
   em.style.display='none';
