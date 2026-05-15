@@ -104,6 +104,29 @@
   .empty{text-align:center;padding:40px;color:#999;font-size:14px}
   .empty-icon{font-size:40px;display:block;margin-bottom:10px;opacity:0.4}
   .section-title{font-size:15px;font-weight:600;color:#2d7a3a;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid #e0f5e5}
+
+  /* === STATS DASHBOARD === */
+  .stats-dashboard{margin-bottom:20px}
+  .stats-title{font-size:14px;font-weight:700;color:#2d7a3a;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+  .stats-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  .stat-card{border-radius:12px;padding:16px;text-align:center;position:relative;overflow:hidden}
+  .stat-card-day{background:linear-gradient(135deg,#e0f5e5,#c6ead0);border:1px solid #80c890}
+  .stat-card-week{background:linear-gradient(135deg,#eef2ff,#dde3fc);border:1px solid #c7d2fe}
+  .stat-card-month{background:linear-gradient(135deg,#fff7ed,#feecd8);border:1px solid #fed7aa}
+  .stat-label{font-size:12px;font-weight:600;margin-bottom:6px}
+  .stat-card-day .stat-label{color:#1a5c25}
+  .stat-card-week .stat-label{color:#3730a3}
+  .stat-card-month .stat-label{color:#9a3412}
+  .stat-num{font-size:28px;font-weight:700;line-height:1}
+  .stat-card-day .stat-num{color:#2d7a3a}
+  .stat-card-week .stat-num{color:#4338ca}
+  .stat-card-month .stat-num{color:#c2410c}
+  .stat-sub{font-size:11px;margin-top:4px;opacity:0.7}
+  .stat-card-day .stat-sub{color:#1a5c25}
+  .stat-card-week .stat-sub{color:#3730a3}
+  .stat-card-month .stat-sub{color:#9a3412}
+  .stat-loading{font-size:11px;color:#999;text-align:center;padding:4px 0;display:none}
+
   /* MODAL */
   .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:999;align-items:center;justify-content:center;padding:16px}
   .modal-bg.open{display:flex}
@@ -122,7 +145,13 @@
   table.log th{background:#555;color:white;padding:8px;text-align:left;white-space:nowrap}
   table.log td{padding:7px 8px;border-bottom:1px solid #eee;color:#222;vertical-align:top}
   table.log tr:hover td{background:#f9f9f9}
-  @media(max-width:600px){.row2,.row3{grid-template-columns:1fr}body{padding:8px}.hdr h1{font-size:15px}.hdr-user{display:none}}
+  @media(max-width:600px){
+    .row2,.row3{grid-template-columns:1fr}
+    body{padding:8px}
+    .hdr h1{font-size:15px}
+    .hdr-user{display:none}
+    .stats-grid{grid-template-columns:1fr}
+  }
 </style>
 </head>
 <body>
@@ -131,8 +160,8 @@
   <div class="login-wrap">
     <div class="login-hdr">
       <div class="icon">
-  <img src="https://lh3.googleusercontent.com/d/1rgHpANYSVM9xPFreJTxNr9nU_ZoXgAbA" style="width: 64px; height: 64px; object-fit: cover; border-radius: 50%; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
-</div>
+        <img src="https://lh3.googleusercontent.com/d/1rgHpANYSVM9xPFreJTxNr9nU_ZoXgAbA" style="width:64px;height:64px;object-fit:cover;border-radius:50%;box-shadow:0 4px 8px rgba(0,0,0,0.1);">
+      </div>
       <h1>โรงพยาบาลสิชล</h1>
       <p>ระบบจองห้องพิเศษผู้ป่วยใน</p>
     </div>
@@ -148,9 +177,9 @@
 <div class="container">
 <div class="wrap" id="main-app">
   <div class="hdr">
-   <div class="hdr-icon" style="padding: 0; overflow: hidden; background: white;">
-  <img src="https://lh3.googleusercontent.com/d/1rgHpANYSVM9xPFreJTxNr9nU_ZoXgAbA" style="width: 100%; height: 100%; object-fit: cover;">
-</div>
+    <div class="hdr-icon" style="padding:0;overflow:hidden;background:white;">
+      <img src="https://lh3.googleusercontent.com/d/1rgHpANYSVM9xPFreJTxNr9nU_ZoXgAbA" style="width:100%;height:100%;object-fit:cover;">
+    </div>
     <div class="hdr-info">
       <h1>โรงพยาบาลสิชล</h1>
       <p>ระบบจองห้องพิเศษผู้ป่วยใน — เคาน์เตอร์ประชาสัมพันธ์</p>
@@ -170,7 +199,32 @@
   <div class="body">
     <div id="alert-box" class="alert"></div>
 
+    <!-- TAB: บันทึกการจอง -->
     <div id="sec-form" class="sec active">
+
+      <!-- ✅ STATS DASHBOARD — แสดงที่นี่สำหรับทุก role -->
+      <div class="stats-dashboard">
+        <div class="stats-title">📊 สรุปสถิติการจองห้องพิเศษ</div>
+        <div class="stats-grid">
+          <div class="stat-card stat-card-day">
+            <div class="stat-label">📅 จองวันนี้</div>
+            <div class="stat-num" id="stat-day">—</div>
+            <div class="stat-sub">รายการ</div>
+          </div>
+          <div class="stat-card stat-card-week">
+            <div class="stat-label">🗓️ สัปดาห์นี้</div>
+            <div class="stat-num" id="stat-week">—</div>
+            <div class="stat-sub">รายการ</div>
+          </div>
+          <div class="stat-card stat-card-month">
+            <div class="stat-label">📆 เดือนนี้</div>
+            <div class="stat-num" id="stat-month">—</div>
+            <div class="stat-sub">รายการ</div>
+          </div>
+        </div>
+        <div class="stat-loading" id="stat-loading">⏳ กำลังโหลดสถิติ...</div>
+      </div>
+
       <div class="section-title">ข้อมูลผู้ป่วย</div>
       <div class="row2">
         <div class="fg"><label>HN</label><input type="text" id="hn" placeholder="เช่น 0216754"></div>
@@ -210,22 +264,8 @@
       <button class="btn-primary" id="btn-save" onclick="saveBooking()">💾 บันทึกการจอง</button>
     </div>
 
+    <!-- TAB: รายการจอง (Admin only) -->
     <div id="sec-list" class="sec">
-      <div class="row3" style="margin-bottom: 20px;">
-        <div style="background: #e0f5e5; padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #80c890;">
-          <div style="font-size: 12px; color: #1a5c25; font-weight: 600;">จองวันนี้</div>
-          <div id="sum-day" style="font-size: 24px; font-weight: 700; color: #2d7a3a;">0</div>
-        </div>
-        <div style="background: #eef2ff; padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #c7d2fe;">
-          <div style="font-size: 12px; color: #3730a3; font-weight: 600;">สัปดาห์นี้</div>
-          <div id="sum-week" style="font-size: 24px; font-weight: 700; color: #4338ca;">0</div>
-        </div>
-        <div style="background: #fff7ed; padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #fed7aa;">
-          <div style="font-size: 12px; color: #9a3412; font-weight: 600;">เดือนนี้</div>
-          <div id="sum-month" style="font-size: 24px; font-weight: 700; color: #c2410c;">0</div>
-        </div>
-      </div>
-
       <div class="search-bar">
         <input type="text" id="search-input" placeholder="🔍 ค้นหา HN, ชื่อ, แพทย์, หัตถการ..." oninput="debounceSearch()">
         <button onclick="clearSearch()">✖ ล้าง</button>
@@ -257,6 +297,7 @@
       </div>
     </div>
 
+    <!-- TAB: Log (Admin only) -->
     <div id="sec-log" class="sec">
       <div class="top-bar" style="margin-bottom:14px">
         <button class="btn-refresh" style="width:100%" onclick="loadLog()">🔄 รีเฟรช Log</button>
@@ -275,6 +316,7 @@
 </div>
 </div>
 
+<!-- EDIT MODAL -->
 <div class="modal-bg" id="edit-modal">
   <div class="modal">
     <div class="modal-hdr">
@@ -331,10 +373,11 @@ let data = [];
 let sortKey = 'id';
 let sortAsc = false;
 let editingId = null;
-let currentUser = null; // { username, name, role }
+let currentUser = null;
 let searchTimer = null;
 let searchableCache = [];
-let isLoading = false;    
+let isLoading = false;
+
 // ===== LOGIN =====
 async function doLogin() {
   const username = document.getElementById('l-user').value.trim();
@@ -353,6 +396,8 @@ async function doLogin() {
       document.getElementById('hdr-role').textContent = json.role === 'admin' ? '👑 Admin' : '👤 User';
       setupTabs();
       document.getElementById('dbook').value = new Date().toISOString().split('T')[0];
+      // โหลดสถิติทันทีหลัง login
+      loadStats();
     } else {
       showLoginErr(json.message || 'เข้าสู่ระบบไม่สำเร็จ');
     }
@@ -374,6 +419,8 @@ function doLogout() {
   document.getElementById('login-page').style.display = 'block';
   document.getElementById('l-user').value = '';
   document.getElementById('l-pass').value = '';
+  // reset stats
+  ['stat-day','stat-week','stat-month'].forEach(id => { document.getElementById(id).textContent = '—'; });
 }
 
 function setupTabs() {
@@ -382,25 +429,74 @@ function setupTabs() {
   document.getElementById('tab-log').style.display = isAdmin ? '' : 'none';
 }
 
+// ===== STATS — แยกฟังก์ชันโหลดสถิติออกมา ดึงข้อมูลอิสระ =====
+async function loadStats() {
+  const loadingEl = document.getElementById('stat-loading');
+  loadingEl.style.display = 'block';
+  ['stat-day','stat-week','stat-month'].forEach(id => { document.getElementById(id).textContent = '—'; });
+  try {
+    const res = await fetch(GAS_URL);
+    const json = await res.json();
+    const allData = (json.data || []).map(r => ({
+      dbook: r.dbook
+    }));
+
+    const todayDate = new Date();
+    const startOfDay = new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate()).getTime();
+
+    const tempDate = new Date();
+    const diff = tempDate.getDate() - tempDate.getDay() + (tempDate.getDay() === 0 ? -6 : 1);
+    const startOfWeek = new Date(tempDate.getFullYear(), tempDate.getMonth(), diff).setHours(0,0,0,0);
+
+    const startOfMonth = new Date(todayDate.getFullYear(), todayDate.getMonth(), 1).getTime();
+
+    let countDay = 0, countWeek = 0, countMonth = 0;
+    allData.forEach(r => {
+      const d = parseDate(r.dbook);
+      if (!d) return;
+      const itemTime = new Date(d.y, d.m - 1, d.d).getTime();
+      if (itemTime >= startOfDay)   countDay++;
+      if (itemTime >= startOfWeek)  countWeek++;
+      if (itemTime >= startOfMonth) countMonth++;
+    });
+
+    document.getElementById('stat-day').textContent   = countDay;
+    document.getElementById('stat-week').textContent  = countWeek;
+    document.getElementById('stat-month').textContent = countMonth;
+
+    // ถ้า data หลักโหลดแล้ว ก็อัปเดตด้วย
+    if (allData.length > 0 && data.length === 0) {
+      data = (json.data || []).map(r => ({
+        id: r.id, hn: r.hn, pname: r.pname, dbook: r.dbook, dadmit: r.dadmit,
+        doctor: r.doctor,
+        rooms: typeof r.rooms === 'string' ? r.rooms.split(', ').filter(Boolean) : (r.rooms || []),
+        reason: r.reason, phone: r.phone, note: r.note, src: r.src
+      }));
+      buildSearchCache();
+    }
+  } catch(e) {
+    ['stat-day','stat-week','stat-month'].forEach(id => { document.getElementById(id).textContent = '!'; });
+  }
+  loadingEl.style.display = 'none';
+}
+
 // ===== DATA =====
 async function loadData() {
-  if (isLoading) {
-  return;
-}
+  if (isLoading) return;
   showLoading(true);
   try {
     const res = await fetch(GAS_URL);
     const json = await res.json();
-    data = (json.data||[]).map(r => ({
+    data = (json.data || []).map(r => ({
       id: r.id, hn: r.hn, pname: r.pname, dbook: r.dbook, dadmit: r.dadmit,
       doctor: r.doctor,
-      rooms: typeof r.rooms==='string' ? r.rooms.split(', ').filter(Boolean) : (r.rooms||[]),
+      rooms: typeof r.rooms === 'string' ? r.rooms.split(', ').filter(Boolean) : (r.rooms || []),
       reason: r.reason, phone: r.phone, note: r.note, src: r.src
     }));
     buildSearchCache();
     renderList();
-    showAlert('✅ โหลดข้อมูลสำเร็จ '+data.length+' รายการ','ok');
-  } catch(e) { showAlert('❌ โหลดข้อมูลไม่สำเร็จ','err'); }
+    showAlert('✅ โหลดข้อมูลสำเร็จ ' + data.length + ' รายการ', 'ok');
+  } catch(e) { showAlert('❌ โหลดข้อมูลไม่สำเร็จ', 'err'); }
   showLoading(false);
 }
 
@@ -421,75 +517,66 @@ async function loadLog() {
     }
 
     em.style.display = 'none';
-    // ส่วนที่แก้ไข: แปลงรูปแบบวันที่และเวลาให้เป็นภาษาไทย
     tb.innerHTML = logs.reverse().map(l => {
       let displayDate = l[0];
       try {
         const d = new Date(l[0]);
         if (!isNaN(d)) {
           displayDate = d.toLocaleString('th-TH', {
-            year: 'numeric',
-            month: 'short',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: false
+            year: 'numeric', month: 'short', day: '2-digit',
+            hour: '2-digit', minute: '2-digit', hour12: false
           }) + ' น.';
         }
-      } catch (e) {
-        displayDate = l[0];
-      }
-
+      } catch(e) { displayDate = l[0]; }
       return `<tr>
         <td style="white-space:nowrap">${displayDate}</td>
-        <td>${l[1]}</td>
-        <td>${l[2]}</td>
+        <td>${l[1]}</td><td>${l[2]}</td>
         <td><span style="background:#e0f5e5;color:#1a5c25;padding:2px 8px;border-radius:10px;font-size:11px">${l[3]}</span></td>
         <td>${l[4]}</td>
       </tr>`;
     }).join('');
-
-  } catch (e) {
-    showAlert('❌ โหลด Log ไม่สำเร็จ', 'err');
-  }
+  } catch(e) { showAlert('❌ โหลด Log ไม่สำเร็จ', 'err'); }
   showLoading(false);
 }
-function showLoading(on){
+
+function showLoading(on) {
   isLoading = on;
   document.getElementById('loading-bar').style.display = on ? 'block' : 'none';
 }
 
 // ===== SAVE =====
 async function saveBooking() {
-  const hn = document.getElementById('hn').value.trim();
-  const pname = document.getElementById('pname').value.trim();
-  const dbook = document.getElementById('dbook').value;
+  const hn     = document.getElementById('hn').value.trim();
+  const pname  = document.getElementById('pname').value.trim();
+  const dbook  = document.getElementById('dbook').value;
   const dadmit = document.getElementById('dadmit').value;
   const doctor = document.getElementById('doctor').value.trim();
   const reason = document.getElementById('reason').value.trim();
-  const phone = document.getElementById('phone').value.trim();
-  const note = document.getElementById('note').value.trim();
-  const src = document.querySelector('input[name=src]:checked').value;
-  const rooms = [...document.querySelectorAll('#room-opts input:checked')].map(c=>c.value);
-  if (!hn) return showAlert('กรุณากรอก HN','err');
-  if (!pname) return showAlert('กรุณากรอกชื่อ-นามสกุล','err');
-  if (!dbook||!dadmit) return showAlert('กรุณากรอกวันที่','err');
-  if (!rooms.length) return showAlert('กรุณาเลือกประเภทห้อง','err');
+  const phone  = document.getElementById('phone').value.trim();
+  const note   = document.getElementById('note').value.trim();
+  const src    = document.querySelector('input[name=src]:checked').value;
+  const rooms  = [...document.querySelectorAll('#room-opts input:checked')].map(c => c.value);
+  if (!hn)            return showAlert('กรุณากรอก HN', 'err');
+  if (!pname)         return showAlert('กรุณากรอกชื่อ-นามสกุล', 'err');
+  if (!dbook||!dadmit)return showAlert('กรุณากรอกวันที่', 'err');
+  if (!rooms.length)  return showAlert('กรุณาเลือกประเภทห้อง', 'err');
   const btn = document.getElementById('btn-save');
-  btn.disabled=true; btn.textContent='⏳ กำลังบันทึก...';
+  btn.disabled = true; btn.textContent = '⏳ กำลังบันทึก...';
   showLoading(true);
   try {
-    await fetch(GAS_URL,{method:'POST',body:JSON.stringify({
-      action:'add',id:Date.now(),hn,pname,dbook,dadmit,doctor,rooms,reason,phone,note,src,
-      username:currentUser.username, name:currentUser.name
+    await fetch(GAS_URL, { method:'POST', body: JSON.stringify({
+      action:'add', id:Date.now(), hn, pname, dbook, dadmit, doctor, rooms, reason, phone, note, src,
+      username: currentUser.username, name: currentUser.name
     })});
-    ['hn','pname','dadmit','doctor','reason','phone','note'].forEach(id=>document.getElementById(id).value='');
-    document.querySelector('input[name=src][value=counter]').checked=true;
-    document.querySelectorAll('#room-opts input').forEach(c=>c.checked=false);
+    ['hn','pname','dadmit','doctor','reason','phone','note'].forEach(id => document.getElementById(id).value = '');
+    document.querySelector('input[name=src][value=counter]').checked = true;
+    document.querySelectorAll('#room-opts input').forEach(c => c.checked = false);
     renderTags();
-    showAlert('✅ บันทึกสำเร็จ!','ok');
-  } catch(e) { showAlert('❌ บันทึกไม่สำเร็จ กรุณาลองใหม่','err'); }
-  btn.disabled=false; btn.textContent='💾 บันทึกการจอง';
+    showAlert('✅ บันทึกสำเร็จ!', 'ok');
+    // รีเฟรชสถิติหลังบันทึก
+    loadStats();
+  } catch(e) { showAlert('❌ บันทึกไม่สำเร็จ กรุณาลองใหม่', 'err'); }
+  btn.disabled = false; btn.textContent = '💾 บันทึกการจอง';
   showLoading(false);
 }
 
@@ -497,208 +584,200 @@ async function del(id) {
   if (!confirm('ยืนยันการลบรายการนี้?')) return;
   showLoading(true);
   try {
-    await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'delete',id,username:currentUser.username,name:currentUser.name})});
-    data=data.filter(d=>String(d.id)!==String(id));
-    renderList(); showAlert('✅ ลบรายการเรียบร้อย','ok');
-  } catch(e) { showAlert('❌ ลบไม่สำเร็จ','err'); }
+    await fetch(GAS_URL, { method:'POST', body: JSON.stringify({ action:'delete', id, username:currentUser.username, name:currentUser.name })});
+    data = data.filter(d => String(d.id) !== String(id));
+    renderList();
+    showAlert('✅ ลบรายการเรียบร้อย', 'ok');
+    // รีเฟรชสถิติหลังลบ
+    loadStats();
+  } catch(e) { showAlert('❌ ลบไม่สำเร็จ', 'err'); }
   showLoading(false);
 }
 
 // ===== EDIT =====
 function openEdit(id) {
-  const r = data.find(d=>String(d.id)===String(id));
+  const r = data.find(d => String(d.id) === String(id));
   if (!r) return;
   editingId = id;
-  document.getElementById('e-hn').value=r.hn||'';
-  document.getElementById('e-pname').value=r.pname||'';
-  document.getElementById('e-doctor').value=r.doctor||'';
-  document.getElementById('e-reason').value=r.reason||'';
-  document.getElementById('e-phone').value=r.phone||'';
-  document.getElementById('e-note').value=r.note||'';
-  const toInput=(d)=>{const dt=parseDate(d);if(!dt)return'';return dt.y+'-'+String(dt.m).padStart(2,'0')+'-'+String(dt.d).padStart(2,'0');};
-  document.getElementById('e-dbook').value=toInput(r.dbook);
-  document.getElementById('e-dadmit').value=toInput(r.dadmit);
-  document.querySelectorAll('#e-room-opts input').forEach(c=>{c.checked=(r.rooms||[]).includes(c.value);});
-  const srcEl=document.querySelector(`input[name=e-src][value="${r.src}"]`);
-  if(srcEl)srcEl.checked=true;
-  else document.querySelector('input[name=e-src][value=counter]').checked=true;
+  document.getElementById('e-hn').value     = r.hn || '';
+  document.getElementById('e-pname').value  = r.pname || '';
+  document.getElementById('e-doctor').value = r.doctor || '';
+  document.getElementById('e-reason').value = r.reason || '';
+  document.getElementById('e-phone').value  = r.phone || '';
+  document.getElementById('e-note').value   = r.note || '';
+  const toInput = (d) => { const dt = parseDate(d); if (!dt) return ''; return dt.y + '-' + String(dt.m).padStart(2,'0') + '-' + String(dt.d).padStart(2,'0'); };
+  document.getElementById('e-dbook').value  = toInput(r.dbook);
+  document.getElementById('e-dadmit').value = toInput(r.dadmit);
+  document.querySelectorAll('#e-room-opts input').forEach(c => { c.checked = (r.rooms || []).includes(c.value); });
+  const srcEl = document.querySelector(`input[name=e-src][value="${r.src}"]`);
+  if (srcEl) srcEl.checked = true;
+  else document.querySelector('input[name=e-src][value=counter]').checked = true;
   document.getElementById('edit-modal').classList.add('open');
 }
-function closeEdit(){editingId=null;document.getElementById('edit-modal').classList.remove('open');}
+function closeEdit() { editingId = null; document.getElementById('edit-modal').classList.remove('open'); }
 
 async function saveEdit() {
-  if(!editingId)return;
-  const hn=document.getElementById('e-hn').value.trim();
-  const pname=document.getElementById('e-pname').value.trim();
-  const dbook=document.getElementById('e-dbook').value;
-  const dadmit=document.getElementById('e-dadmit').value;
-  const doctor=document.getElementById('e-doctor').value.trim();
-  const reason=document.getElementById('e-reason').value.trim();
-  const phone=document.getElementById('e-phone').value.trim();
-  const note=document.getElementById('e-note').value.trim();
-  const src=document.querySelector('input[name=e-src]:checked')?.value||'counter';
-  const rooms=[...document.querySelectorAll('#e-room-opts input:checked')].map(c=>c.value);
-  if(!hn)return showAlert('กรุณากรอก HN','err');
-  if(!pname)return showAlert('กรุณากรอกชื่อ-นามสกุล','err');
-  if(!rooms.length)return showAlert('กรุณาเลือกประเภทห้อง','err');
-  const btn=document.getElementById('btn-save-edit');
-  btn.disabled=true;btn.textContent='⏳ กำลังบันทึก...';
+  if (!editingId) return;
+  const hn     = document.getElementById('e-hn').value.trim();
+  const pname  = document.getElementById('e-pname').value.trim();
+  const dbook  = document.getElementById('e-dbook').value;
+  const dadmit = document.getElementById('e-dadmit').value;
+  const doctor = document.getElementById('e-doctor').value.trim();
+  const reason = document.getElementById('e-reason').value.trim();
+  const phone  = document.getElementById('e-phone').value.trim();
+  const note   = document.getElementById('e-note').value.trim();
+  const src    = document.querySelector('input[name=e-src]:checked')?.value || 'counter';
+  const rooms  = [...document.querySelectorAll('#e-room-opts input:checked')].map(c => c.value);
+  if (!hn)           return showAlert('กรุณากรอก HN', 'err');
+  if (!pname)        return showAlert('กรุณากรอกชื่อ-นามสกุล', 'err');
+  if (!rooms.length) return showAlert('กรุณาเลือกประเภทห้อง', 'err');
+  const btn = document.getElementById('btn-save-edit');
+  btn.disabled = true; btn.textContent = '⏳ กำลังบันทึก...';
   showLoading(true);
   try {
-    await fetch(GAS_URL,{method:'POST',body:JSON.stringify({
-      action:'update',id:editingId,hn,pname,dbook,dadmit,doctor,rooms,reason,phone,note,src,
-      username:currentUser.username,name:currentUser.name
+    await fetch(GAS_URL, { method:'POST', body: JSON.stringify({
+      action:'update', id:editingId, hn, pname, dbook, dadmit, doctor, rooms, reason, phone, note, src,
+      username:currentUser.username, name:currentUser.name
     })});
-    const idx=data.findIndex(d=>String(d.id)===String(editingId));
-    if(idx!==-1)data[idx]={...data[idx],hn,pname,dbook,dadmit,doctor,rooms,reason,phone,note,src};
-    renderList();closeEdit();showAlert('✅ แก้ไขเรียบร้อย','ok');
-  } catch(e){showAlert('❌ แก้ไขไม่สำเร็จ','err');}
-  btn.disabled=false;btn.textContent='💾 บันทึกการแก้ไข';
+    const idx = data.findIndex(d => String(d.id) === String(editingId));
+    if (idx !== -1) data[idx] = { ...data[idx], hn, pname, dbook, dadmit, doctor, rooms, reason, phone, note, src };
+    renderList();
+    closeEdit();
+    showAlert('✅ แก้ไขเรียบร้อย', 'ok');
+    // รีเฟรชสถิติหลังแก้ไข
+    loadStats();
+  } catch(e) { showAlert('❌ แก้ไขไม่สำเร็จ', 'err'); }
+  btn.disabled = false; btn.textContent = '💾 บันทึกการแก้ไข';
   showLoading(false);
 }
 
 // ===== DATE =====
 function parseDate(d) {
-  if(!d)return null;
-  const s=String(d);
-  if(s.includes('T')){const dt=new Date(new Date(s).getTime()+7*60*60*1000);return{y:dt.getUTCFullYear(),m:dt.getUTCMonth()+1,d:dt.getUTCDate()};}
-  const p=s.split('-');
-  if(p.length===3)return{y:parseInt(p[0]),m:parseInt(p[1]),d:parseInt(p[2])};
+  if (!d) return null;
+  const s = String(d);
+  if (s.includes('T')) {
+    const dt = new Date(new Date(s).getTime() + 7 * 60 * 60 * 1000);
+    return { y: dt.getUTCFullYear(), m: dt.getUTCMonth() + 1, d: dt.getUTCDate() };
+  }
+  const p = s.split('-');
+  if (p.length === 3) return { y: parseInt(p[0]), m: parseInt(p[1]), d: parseInt(p[2]) };
   return null;
 }
-function fmtDate(d){const dt=parseDate(d);if(!dt)return'-';const m=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];return String(dt.d).padStart(2,'0')+' '+m[dt.m-1]+' '+(dt.y+543);}
-function fmtDateXL(d){const dt=parseDate(d);if(!dt)return'-';return String(dt.d).padStart(2,'0')+'/'+String(dt.m).padStart(2,'0')+'/'+(dt.y+543);}
+function fmtDate(d) {
+  const dt = parseDate(d);
+  if (!dt) return '-';
+  const m = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  return String(dt.d).padStart(2,'0') + ' ' + m[dt.m-1] + ' ' + (dt.y + 543);
+}
+function fmtDateXL(d) {
+  const dt = parseDate(d);
+  if (!dt) return '-';
+  return String(dt.d).padStart(2,'0') + '/' + String(dt.m).padStart(2,'0') + '/' + (dt.y + 543);
+}
 
 // ===== RENDER LIST =====
-function srcLabel(s){if(s==='fb')return'Facebook';if(s==='counter')return'เคาน์เตอร์ประชาสัมพันธ์';return'อื่นๆ';}
-function srcBadge(s){if(s==='fb')return'<span class="badge-fb">FB</span>';if(s==='counter')return'<span class="badge-cnt">เคาน์เตอร์</span>';return'<span class="badge-other">อื่นๆ</span>';}
+function srcLabel(s) { if (s==='fb') return 'Facebook'; if (s==='counter') return 'เคาน์เตอร์ประชาสัมพันธ์'; return 'อื่นๆ'; }
+function srcBadge(s) { if (s==='fb') return '<span class="badge-fb">FB</span>'; if (s==='counter') return '<span class="badge-cnt">เคาน์เตอร์</span>'; return '<span class="badge-other">อื่นๆ</span>'; }
 
-function setSort(key){
-  if(sortKey===key){sortAsc=!sortAsc;}else{sortKey=key;sortAsc=key==='pname'||key==='doctor'||key==='hn';}
-  document.querySelectorAll('.sort-btn').forEach(b=>b.classList.remove('active'));
-  const btn=document.getElementById('sort-'+key);if(btn)btn.classList.add('active');
+function setSort(key) {
+  if (sortKey === key) { sortAsc = !sortAsc; } else { sortKey = key; sortAsc = key==='pname'||key==='doctor'||key==='hn'; }
+  document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('sort-' + key); if (btn) btn.classList.add('active');
   renderList();
 }
 
-// 1. แยก buildSearchCache ออกมาอยู่ด้านนอก
-function buildSearchCache(){
+function buildSearchCache() {
   searchableCache = data.map(r => ({
     id: r.id,
     text: [
       r.hn, r.pname, r.doctor, r.reason, r.phone, r.note, r.src,
-      Array.isArray(r.rooms)?r.rooms.join(' '):String(r.rooms||''),
+      Array.isArray(r.rooms) ? r.rooms.join(' ') : String(r.rooms || ''),
       srcLabel(r.src), fmtDate(r.dbook), fmtDate(r.dadmit)
     ].join(' ').toLowerCase()
   }));
 }
 
-// 2. แยก debounceSearch ออกมาอยู่ด้านนอก
-function debounceSearch(){
+function debounceSearch() {
   clearTimeout(searchTimer);
-  searchTimer = setTimeout(() => {
-    renderList();
-  }, 250);
+  searchTimer = setTimeout(() => { renderList(); }, 250);
 }
 
-// 3. ฟังก์ชัน renderList ที่เป็นแบบใหม่ (STEP 8)
-function renderList(){
-  const tb=document.getElementById('tbl-body');
-  const em=document.getElementById('empty-state');
-  const rc=document.getElementById('result-count');
-  const q=(document.getElementById('search-input')?.value||'').trim().toLowerCase();
+function clearSearch() {
+  const el = document.getElementById('search-input');
+  if (el) { el.value = ''; renderList(); }
+}
+
+function renderList() {
+  const tb = document.getElementById('tbl-body');
+  const em = document.getElementById('empty-state');
+  const rc = document.getElementById('result-count');
+  const q  = (document.getElementById('search-input')?.value || '').trim().toLowerCase();
 
   let filtered;
-
-  if(!q){
+  if (!q) {
     filtered = [...data];
-  }else{
-    const matchedIds = searchableCache
-        .filter(c => c.text.includes(q))
-        .map(c => String(c.id));
-
+  } else {
+    const matchedIds = searchableCache.filter(c => c.text.includes(q)).map(c => String(c.id));
     filtered = data.filter(r => matchedIds.includes(String(r.id)));
   }
 
-  filtered.sort((a,b)=>{let va=a[sortKey]||'',vb=b[sortKey]||'';if(sortKey==='id'){va=Number(va);vb=Number(vb);}const cmp=va<vb?-1:va>vb?1:0;return sortAsc?cmp:-cmp;});
-  if(!data.length){tb.innerHTML='';em.style.display='block';rc.textContent='';return;}
-  em.style.display='none';
-  rc.textContent=q?`พบ ${filtered.length} รายการ จากทั้งหมด ${data.length} รายการ`:`ทั้งหมด ${data.length} รายการ`;
-  if(!filtered.length){tb.innerHTML=`<tr><td colspan="10" style="text-align:center;padding:24px;color:#999">ไม่พบรายการที่ค้นหา</td></tr>`;return;}
-  
-  tb.innerHTML=filtered.map(r=>`<tr>
+  filtered.sort((a,b) => {
+    let va = a[sortKey] || '', vb = b[sortKey] || '';
+    if (sortKey === 'id') { va = Number(va); vb = Number(vb); }
+    const cmp = va < vb ? -1 : va > vb ? 1 : 0;
+    return sortAsc ? cmp : -cmp;
+  });
+
+  if (!data.length) { tb.innerHTML = ''; em.style.display = 'block'; rc.textContent = ''; return; }
+  em.style.display = 'none';
+  rc.textContent = q ? `พบ ${filtered.length} รายการ จากทั้งหมด ${data.length} รายการ` : `ทั้งหมด ${data.length} รายการ`;
+  if (!filtered.length) { tb.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:24px;color:#999">ไม่พบรายการที่ค้นหา</td></tr>`; return; }
+
+  tb.innerHTML = filtered.map(r => `<tr>
     <td><strong>${r.hn}</strong></td><td>${r.pname}</td>
     <td>${fmtDate(r.dbook)}</td>
     <td style="color:#c07800;font-weight:600">${fmtDate(r.dadmit)}</td>
-    <td>${(r.rooms||[]).join('<br>')}</td>
-    <td>${r.doctor||'-'}</td><td>${r.reason||'-'}</td><td>${r.phone||'-'}</td>
-    <td>${srcBadge(r.src)}${r.note?'<br><span style="font-size:12px;color:#666">'+r.note+'</span>':''}</td>
+    <td>${(r.rooms || []).join('<br>')}</td>
+    <td>${r.doctor || '-'}</td><td>${r.reason || '-'}</td><td>${r.phone || '-'}</td>
+    <td>${srcBadge(r.src)}${r.note ? '<br><span style="font-size:12px;color:#666">' + r.note + '</span>' : ''}</td>
     <td style="min-width:90px">
       <button class="btn-edit" onclick="openEdit('${r.id}')">✏️ แก้ไข</button>
       <button class="btn-receipt" onclick="downloadReceipt('${r.id}')">🖼️ ใบหลักฐาน</button>
       <button class="btn-del" onclick="del('${r.id}')">🗑️ ลบ</button>
     </td>
   </tr>`).join('');
-
-  // --- ส่วนคำนวณ Dashboard ที่ถูกแก้ไขบั๊กแล้ว ---
-  const todayDate = new Date();
-  
-  // หาวันที่เริ่มต้นของวันนี้
-  const startOfDay = new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate()).getTime();
-  
-  // หาวันจันทร์ของสัปดาห์นี้ (ใช้ tempDate เพื่อไม่ให้ตัวแปรหลักเพี้ยน)
-  const tempDate = new Date();
-  const diff = tempDate.getDate() - tempDate.getDay() + (tempDate.getDay() === 0 ? -6 : 1);
-  const startOfWeek = new Date(tempDate.setDate(diff)).setHours(0,0,0,0);
-  
-  // หาวันที่ 1 ของเดือนนี้
-  const startOfMonth = new Date(todayDate.getFullYear(), todayDate.getMonth(), 1).getTime();
-
-  let countDay = 0, countWeek = 0, countMonth = 0;
-
-  data.forEach(r => {
-    const d = parseDate(r.dbook); // นับจากวันที่จอง
-    if(!d) return;
-    const itemTime = new Date(d.y, d.m-1, d.d).getTime();
-
-    if(itemTime >= startOfDay) countDay++;
-    if(itemTime >= startOfWeek) countWeek++;
-    if(itemTime >= startOfMonth) countMonth++;
-  });
-
-  const sumDayEl = document.getElementById('sum-day');
-  const sumWeekEl = document.getElementById('sum-week');
-  const sumMonthEl = document.getElementById('sum-month');
-
-  if(sumDayEl) sumDayEl.textContent = countDay;
-  if(sumWeekEl) sumWeekEl.textContent = countWeek;
-  if(sumMonthEl) sumMonthEl.textContent = countMonth;
-  // ------------------------------------------------
 }
 
 // ===== EXCEL =====
-function exportExcel(){
-  if(!data.length)return showAlert('ยังไม่มีรายการจอง','err');
-  const rows=data.map((r,i)=>({'ลำดับ':i+1,'HN':r.hn,'ชื่อ-นามสกุล':r.pname,'วันที่จอง':fmtDateXL(r.dbook),'วันที่ Admit':fmtDateXL(r.dadmit),'ประเภทห้องพิเศษ':(r.rooms||[]).join(', '),'แพทย์ผู้นัด':r.doctor||'-','หัตถการ/สาเหตุที่นัด':r.reason||'-','เบอร์ติดต่อ':r.phone||'-','ช่องทางการจอง':srcLabel(r.src),'หมายเหตุ':r.note||'-'}));
-  const ws=XLSX.utils.json_to_sheet(rows);
-  ws['!cols']=[{wch:6},{wch:12},{wch:22},{wch:14},{wch:14},{wch:32},{wch:18},{wch:24},{wch:14},{wch:24},{wch:22}];
-  const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,ws,'รายการจองห้องพิเศษ');
-  const d=new Date();
-  XLSX.writeFile(wb,'รายการจองห้องพิเศษ_โรงพยาบาลสิชล_'+d.toLocaleDateString('th-TH').replace(/\//g,'-')+'.xlsx');
-  showAlert('✅ ดาวน์โหลด Excel เรียบร้อย','ok');
+function exportExcel() {
+  if (!data.length) return showAlert('ยังไม่มีรายการจอง', 'err');
+  const rows = data.map((r,i) => ({
+    'ลำดับ': i+1, 'HN': r.hn, 'ชื่อ-นามสกุล': r.pname,
+    'วันที่จอง': fmtDateXL(r.dbook), 'วันที่ Admit': fmtDateXL(r.dadmit),
+    'ประเภทห้องพิเศษ': (r.rooms || []).join(', '),
+    'แพทย์ผู้นัด': r.doctor || '-', 'หัตถการ/สาเหตุที่นัด': r.reason || '-',
+    'เบอร์ติดต่อ': r.phone || '-', 'ช่องทางการจอง': srcLabel(r.src), 'หมายเหตุ': r.note || '-'
+  }));
+  const ws = XLSX.utils.json_to_sheet(rows);
+  ws['!cols'] = [{wch:6},{wch:12},{wch:22},{wch:14},{wch:14},{wch:32},{wch:18},{wch:24},{wch:14},{wch:24},{wch:22}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'รายการจองห้องพิเศษ');
+  const d = new Date();
+  XLSX.writeFile(wb, 'รายการจองห้องพิเศษ_โรงพยาบาลสิชล_' + d.toLocaleDateString('th-TH').replace(/\//g,'-') + '.xlsx');
+  showAlert('✅ ดาวน์โหลด Excel เรียบร้อย', 'ok');
 }
 
 // ===== RECEIPT =====
-function downloadReceipt(id){
-  const r=data.find(d=>String(d.id)===String(id));
-  if(!r)return;
-  const refNo='REF-'+String(r.id).slice(-6);
-  const tpl=document.getElementById('receipt-tpl');
-  tpl.innerHTML=`<div style="width:720px;background:white;padding:0;font-family:'Sarabun',sans-serif">
+function downloadReceipt(id) {
+  const r = data.find(d => String(d.id) === String(id));
+  if (!r) return;
+  const refNo = 'REF-' + String(r.id).slice(-6);
+  const tpl = document.getElementById('receipt-tpl');
+  tpl.innerHTML = `<div style="width:720px;background:white;padding:0;font-family:'Sarabun',sans-serif">
     <div style="background:linear-gradient(135deg,#2d7a3a,#1f5c28);padding:28px 36px;display:flex;align-items:center;gap:18px">
       <div style="width:60px;height:60px;background:white;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;">
-  <img src="https://lh3.googleusercontent.com/d/1rgHpANYSVM9xPFreJTxNr9nU_ZoXgAbA" style="width:100%;height:100%;object-fit:cover;">
-</div>
+        <img src="https://lh3.googleusercontent.com/d/1rgHpANYSVM9xPFreJTxNr9nU_ZoXgAbA" style="width:100%;height:100%;object-fit:cover;">
+      </div>
       <div><div style="color:white;font-size:22px;font-weight:700">โรงพยาบาลสิชล</div><div style="color:rgba(255,255,255,0.85);font-size:14px;margin-top:3px">ใบยืนยันการจองห้องพิเศษผู้ป่วยใน</div></div>
       <div style="margin-left:auto;text-align:right"><div style="color:rgba(255,255,255,0.7);font-size:12px">เลขที่อ้างอิง</div><div style="color:white;font-size:18px;font-weight:700">${refNo}</div></div>
     </div>
@@ -708,8 +787,8 @@ function downloadReceipt(id){
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
           <div><div style="font-size:11px;color:#888;margin-bottom:4px">HN</div><div style="font-size:16px;font-weight:700;color:#111">${r.hn}</div></div>
           <div><div style="font-size:11px;color:#888;margin-bottom:4px">ชื่อ-นามสกุล</div><div style="font-size:16px;font-weight:700;color:#111">${r.pname}</div></div>
-          <div><div style="font-size:11px;color:#888;margin-bottom:4px">เบอร์ติดต่อ</div><div style="font-size:14px;color:#111">${r.phone||'-'}</div></div>
-          <div><div style="font-size:11px;color:#888;margin-bottom:4px">แพทย์ผู้นัด</div><div style="font-size:14px;color:#111">${r.doctor||'-'}</div></div>
+          <div><div style="font-size:11px;color:#888;margin-bottom:4px">เบอร์ติดต่อ</div><div style="font-size:14px;color:#111">${r.phone || '-'}</div></div>
+          <div><div style="font-size:11px;color:#888;margin-bottom:4px">แพทย์ผู้นัด</div><div style="font-size:14px;color:#111">${r.doctor || '-'}</div></div>
         </div>
       </div>
       <div style="background:#fffbf0;border:1.5px solid #f0d080;border-radius:12px;padding:22px 26px;margin-bottom:22px">
@@ -717,13 +796,13 @@ function downloadReceipt(id){
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
           <div><div style="font-size:11px;color:#888;margin-bottom:4px">วันที่จอง</div><div style="font-size:14px;color:#111">${fmtDate(r.dbook)}</div></div>
           <div><div style="font-size:11px;color:#888;margin-bottom:4px">วันที่ Admit</div><div style="font-size:18px;font-weight:700;color:#c07800">${fmtDate(r.dadmit)}</div></div>
-          <div style="grid-column:span 2"><div style="font-size:11px;color:#888;margin-bottom:8px">ประเภทห้องพิเศษที่จอง</div><div style="display:flex;flex-wrap:wrap;gap:7px">${(r.rooms||[]).map(rm=>`<span style="background:#2d7a3a;color:white;font-size:13px;padding:4px 14px;border-radius:20px">${rm}</span>`).join('')}</div></div>
-          <div style="grid-column:span 2"><div style="font-size:11px;color:#888;margin-bottom:4px">หัตถการ / สาเหตุที่นัด</div><div style="font-size:14px;color:#111">${r.reason||'-'}</div></div>
+          <div style="grid-column:span 2"><div style="font-size:11px;color:#888;margin-bottom:8px">ประเภทห้องพิเศษที่จอง</div><div style="display:flex;flex-wrap:wrap;gap:7px">${(r.rooms || []).map(rm => `<span style="background:#2d7a3a;color:white;font-size:13px;padding:4px 14px;border-radius:20px">${rm}</span>`).join('')}</div></div>
+          <div style="grid-column:span 2"><div style="font-size:11px;color:#888;margin-bottom:4px">หัตถการ / สาเหตุที่นัด</div><div style="font-size:14px;color:#111">${r.reason || '-'}</div></div>
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:22px">
         <div style="background:#f5f5f5;border-radius:10px;padding:16px 20px"><div style="font-size:11px;color:#888;margin-bottom:4px">ช่องทางการจอง</div><div style="font-size:14px;font-weight:600;color:#111">${srcLabel(r.src)}</div></div>
-        <div style="background:#f5f5f5;border-radius:10px;padding:16px 20px"><div style="font-size:11px;color:#888;margin-bottom:4px">หมายเหตุ</div><div style="font-size:14px;color:#111">${r.note||'-'}</div></div>
+        <div style="background:#f5f5f5;border-radius:10px;padding:16px 20px"><div style="font-size:11px;color:#888;margin-bottom:4px">หมายเหตุ</div><div style="font-size:14px;color:#111">${r.note || '-'}</div></div>
       </div>
       <div style="border-top:1.5px dashed #ddd;padding-top:16px;display:flex;justify-content:space-between">
         <div style="font-size:12px;color:#aaa">พิมพ์โดยระบบจองห้องพิเศษ โรงพยาบาลสิชล</div>
@@ -731,40 +810,46 @@ function downloadReceipt(id){
       </div>
     </div>
   </div>`;
-  showAlert('⏳ กำลังสร้างใบหลักฐาน...','ok');
-  setTimeout(()=>{
-    html2canvas(tpl,{scale:2,useCORS:true,backgroundColor:'#ffffff',width:720}).then(canvas=>{
-      const link=document.createElement('a');
-      link.download='ใบหลักฐานจองห้อง_'+r.hn+'_'+r.pname+'.png';
-      link.href=canvas.toDataURL('image/png');link.click();
-      tpl.innerHTML='';showAlert('✅ ดาวน์โหลดใบหลักฐานเรียบร้อย','ok');
-    }).catch(()=>showAlert('❌ เกิดข้อผิดพลาด','err'));
-  },300);
+  showAlert('⏳ กำลังสร้างใบหลักฐาน...', 'ok');
+  setTimeout(() => {
+    html2canvas(tpl, { scale:2, useCORS:true, backgroundColor:'#ffffff', width:720 }).then(canvas => {
+      const link = document.createElement('a');
+      link.download = 'ใบหลักฐานจองห้อง_' + r.hn + '_' + r.pname + '.png';
+      link.href = canvas.toDataURL('image/png'); link.click();
+      tpl.innerHTML = '';
+      showAlert('✅ ดาวน์โหลดใบหลักฐานเรียบร้อย', 'ok');
+    }).catch(() => showAlert('❌ เกิดข้อผิดพลาด', 'err'));
+  }, 300);
 }
 
 // ===== TAGS =====
-function renderTags(){
-  const tags=document.getElementById('room-tags');
-  tags.innerHTML=[...document.querySelectorAll('#room-opts input:checked')].map(c=>`<span class="tag">${c.value}<button onclick="unchk('${c.value}')" aria-label="ลบ">×</button></span>`).join('');
+function renderTags() {
+  const tags = document.getElementById('room-tags');
+  tags.innerHTML = [...document.querySelectorAll('#room-opts input:checked')].map(c =>
+    `<span class="tag">${c.value}<button onclick="unchk('${c.value}')" aria-label="ลบ">×</button></span>`
+  ).join('');
 }
-function unchk(val){const cb=[...document.querySelectorAll('#room-opts input')].find(c=>c.value===val);if(cb){cb.checked=false;renderTags();}}
-document.querySelectorAll('#room-opts input').forEach(c=>c.addEventListener('change',renderTags));
+function unchk(val) {
+  const cb = [...document.querySelectorAll('#room-opts input')].find(c => c.value === val);
+  if (cb) { cb.checked = false; renderTags(); }
+}
+document.querySelectorAll('#room-opts input').forEach(c => c.addEventListener('change', renderTags));
 
 // ===== TABS =====
-function sw(tab){
-  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['form','list','log'][i]===tab));
-  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
-  document.getElementById('sec-'+tab).classList.add('active');
-  if(tab==='list')loadData();
-  if(tab==='log')loadLog();
+function sw(tab) {
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ['form','list','log'][i] === tab));
+  document.querySelectorAll('.sec').forEach(s => s.classList.remove('active'));
+  document.getElementById('sec-' + tab).classList.add('active');
+  if (tab === 'list') loadData();
+  if (tab === 'log')  loadLog();
 }
 
 // ===== ALERT =====
-function showAlert(msg,type){
-  const el=document.getElementById('alert-box');
-  el.className='alert alert-'+(type==='ok'?'ok':'err');
-  el.textContent=msg;el.style.display='block';
-  setTimeout(()=>{el.style.display='none';},4000);
+function showAlert(msg, type) {
+  const el = document.getElementById('alert-box');
+  el.className = 'alert alert-' + (type === 'ok' ? 'ok' : 'err');
+  el.textContent = msg; el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; }, 4000);
 }
 </script>
 </body>
