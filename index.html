@@ -515,9 +515,15 @@ function showLoading(on) {
   document.getElementById('loading-bar').style.display = on ? 'block' : 'none';
 }
 
+// ===== HN HELPER — เติม ' นำหน้าอัตโนมัติถ้า HN ขึ้นต้นด้วย 0 =====
+function formatHN(raw) {
+  const val = raw.trim().replace(/^'+/, ''); // ตัด ' ที่ผู้ใช้พิมพ์มาเองออกก่อน
+  return val.startsWith('0') ? "'" + val : val;
+}
+
 // ===== SAVE =====
 async function saveBooking() {
-  const hn     = document.getElementById('hn').value.trim();
+  const hn     = formatHN(document.getElementById('hn').value);
   const pname  = document.getElementById('pname').value.trim();
   const dbook  = document.getElementById('dbook').value;
   const dadmit = document.getElementById('dadmit').value;
@@ -585,7 +591,7 @@ function closeEdit() { editingId = null; document.getElementById('edit-modal').c
 
 async function saveEdit() {
   if (!editingId) return;
-  const hn     = document.getElementById('e-hn').value.trim();
+  const hn     = formatHN(document.getElementById('e-hn').value);
   const pname  = document.getElementById('e-pname').value.trim();
   const dbook  = document.getElementById('e-dbook').value;
   const dadmit = document.getElementById('e-dadmit').value;
