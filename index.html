@@ -105,6 +105,10 @@
   .empty-icon{font-size:40px;display:block;margin-bottom:10px;opacity:0.4}
   .section-title{font-size:15px;font-weight:600;color:#2d7a3a;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid #e0f5e5}
 
+  /* DUPLICATE WARNING */
+  .dup-warn{display:none;margin-top:6px;padding:10px 12px;background:#fffbeb;border:1px solid #f59e0b;border-radius:8px;font-size:13px;color:#92400e;line-height:1.5}
+  .dup-warn strong{color:#78350f}
+
   /* === STATS DASHBOARD === */
   .stats-dashboard{margin-bottom:20px}
   .stats-title{font-size:14px;font-weight:700;color:#2d7a3a;margin-bottom:10px;display:flex;align-items:center;gap:8px}
@@ -204,8 +208,16 @@
 
       <div class="section-title">ข้อมูลผู้ป่วย</div>
       <div class="row2">
-        <div class="fg"><label>HN</label><input type="text" id="hn" placeholder="เช่น 0216754"></div>
-        <div class="fg"><label>ชื่อ-นามสกุล</label><input type="text" id="pname" placeholder="เช่น นาย สมชาย ใจดี"></div>
+        <div class="fg">
+          <label>HN</label>
+          <input type="text" id="hn" placeholder="เช่น 0216754">
+          <div id="hn-warn" class="dup-warn"></div>
+        </div>
+        <div class="fg">
+          <label>ชื่อ-นามสกุล</label>
+          <input type="text" id="pname" placeholder="เช่น นาย สมชาย ใจดี">
+          <div id="pname-warn" class="dup-warn"></div>
+        </div>
       </div>
       <div class="row3">
         <div class="fg"><label>วันที่จอง</label><input type="date" id="dbook"></div>
@@ -244,7 +256,7 @@
     <!-- TAB: รายการจอง (Admin only) -->
     <div id="sec-list" class="sec">
 
-      <!-- STATS DASHBOARD — Admin only -->
+      <!-- STATS DASHBOARD -->
       <div class="stats-dashboard">
         <div class="stats-title">📊 สรุปสถิติการจองห้องพิเศษ</div>
         <div class="stats-grid">
@@ -379,6 +391,47 @@ let searchTimer = null;
 let searchableCache = [];
 let isLoading = false;
 
+// ===== DUPLICATE CHECK =====
+function normHN(v){ return String(v).trim().replace(/^'+/,'').toLowerCase(); }
+function normName(v){ return String(v).trim().replace(/\s+/g,' ').toLowerCase(); }
+
+function checkDupHN(){
+  const val = normHN(document.getElementById('hn').value);
+  const el  = document.getElementById('hn-warn');
+  if(!val || !data.length){ el.style.display='none'; return; }
+  const dups = data.filter(r => normHN(r.hn) === val);
+  if(!dups.length){ el.style.display='none'; return; }
+  el.innerHTML = '⚠️ HN นี้มีในระบบแล้ว ' + dups.length + ' รายการ:<br>' +
+    dups.slice(0,3).map(r =>
+      '• <strong>' + r.pname + '</strong> — Admit: ' + fmtDate(r.dadmit)
+    ).join('<br>') +
+    (dups.length > 3 ? '<br>และอีก ' + (dups.length - 3) + ' รายการ...' : '');
+  el.style.display='block';
+}
+
+function checkDupName(){
+  const val = normName(document.getElementById('pname').value);
+  const el  = document.getElementById('pname-warn');
+  if(val.length < 2 || !data.length){ el.style.display='none'; return; }
+  const firstWord = val.split(' ').filter(w => w.length >= 2)[0] || '';
+  const dups = data.filter(r => {
+    const rn = normName(r.pname);
+    return rn === val || (firstWord.length >= 2 && rn.includes(firstWord));
+  });
+  if(!dups.length){ el.style.display='none'; return; }
+  el.innerHTML = '⚠️ พบชื่อที่คล้ายกัน ' + dups.length + ' รายการ:<br>' +
+    dups.slice(0,3).map(r =>
+      '• <strong>' + r.pname + '</strong> HN: ' + r.hn + ' — Admit: ' + fmtDate(r.dadmit)
+    ).join('<br>') +
+    (dups.length > 3 ? '<br>และอีก ' + (dups.length - 3) + ' รายการ...' : '');
+  el.style.display='block';
+}
+
+function clearDupWarnings(){
+  document.getElementById('hn-warn').style.display = 'none';
+  document.getElementById('pname-warn').style.display = 'none';
+}
+
 // ===== LOGIN =====
 async function doLogin() {
   const username = document.getElementById('l-user').value.trim();
@@ -397,6 +450,8 @@ async function doLogin() {
       document.getElementById('hdr-role').textContent = json.role === 'admin' ? '👑 Admin' : '👤 User';
       setupTabs();
       document.getElementById('dbook').value = new Date().toISOString().split('T')[0];
+      // โหลด data ทันทีเพื่อให้ตรวจซ้ำ real-time ได้ทุก role
+      loadDataSilent();
     } else {
       showLoginErr(json.message || 'เข้าสู่ระบบไม่สำเร็จ');
     }
@@ -427,6 +482,21 @@ function setupTabs() {
 }
 
 // ===== DATA =====
+// โหลดแบบเงียบๆ (ไม่แสดง loading bar / alert) เพื่อใช้ตรวจซ้ำ
+async function loadDataSilent() {
+  try {
+    const res = await fetch(GAS_URL);
+    const json = await res.json();
+    data = (json.data || []).map(r => ({
+      id: r.id, hn: r.hn, pname: r.pname, dbook: r.dbook, dadmit: r.dadmit,
+      doctor: r.doctor,
+      rooms: typeof r.rooms === 'string' ? r.rooms.split(', ').filter(Boolean) : (r.rooms || []),
+      reason: r.reason, phone: r.phone, note: r.note, src: r.src
+    }));
+    buildSearchCache();
+  } catch(e) { /* silent fail */ }
+}
+
 async function loadData() {
   if (isLoading) return;
   showLoading(true);
@@ -450,12 +520,10 @@ async function loadData() {
 function computeStats() {
   const todayDate  = new Date();
   const startOfDay = new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate()).getTime();
-
   const tmp  = new Date();
   const diff = tmp.getDate() - tmp.getDay() + (tmp.getDay() === 0 ? -6 : 1);
   const startOfWeek  = new Date(tmp.getFullYear(), tmp.getMonth(), diff).setHours(0,0,0,0);
   const startOfMonth = new Date(todayDate.getFullYear(), todayDate.getMonth(), 1).getTime();
-
   let countDay = 0, countWeek = 0, countMonth = 0;
   data.forEach(r => {
     const d = parseDate(r.dbook);
@@ -465,7 +533,6 @@ function computeStats() {
     if (t >= startOfWeek)  countWeek++;
     if (t >= startOfMonth) countMonth++;
   });
-
   document.getElementById('stat-day').textContent   = countDay;
   document.getElementById('stat-week').textContent  = countWeek;
   document.getElementById('stat-month').textContent = countMonth;
@@ -479,14 +546,12 @@ async function loadLog() {
     const logs = json.logs || [];
     const tb = document.getElementById('log-body');
     const em = document.getElementById('log-empty');
-
     if (!logs.length) {
       tb.innerHTML = '';
       em.style.display = 'block';
       showLoading(false);
       return;
     }
-
     em.style.display = 'none';
     tb.innerHTML = logs.reverse().map(l => {
       let displayDate = l[0];
@@ -515,9 +580,9 @@ function showLoading(on) {
   document.getElementById('loading-bar').style.display = on ? 'block' : 'none';
 }
 
-// ===== HN HELPER — เติม ' นำหน้าอัตโนมัติถ้า HN ขึ้นต้นด้วย 0 =====
+// ===== HN HELPER =====
 function formatHN(raw) {
-  const val = raw.trim().replace(/^'+/, ''); // ตัด ' ที่ผู้ใช้พิมพ์มาเองออกก่อน
+  const val = raw.trim().replace(/^'+/, '');
   return val.startsWith('0') ? "'" + val : val;
 }
 
@@ -533,10 +598,34 @@ async function saveBooking() {
   const note   = document.getElementById('note').value.trim();
   const src    = document.querySelector('input[name=src]:checked').value;
   const rooms  = [...document.querySelectorAll('#room-opts input:checked')].map(c => c.value);
-  if (!hn)            return showAlert('กรุณากรอก HN', 'err');
-  if (!pname)         return showAlert('กรุณากรอกชื่อ-นามสกุล', 'err');
-  if (!dbook||!dadmit)return showAlert('กรุณากรอกวันที่', 'err');
-  if (!rooms.length)  return showAlert('กรุณาเลือกประเภทห้อง', 'err');
+
+  if (!hn)             return showAlert('กรุณากรอก HN', 'err');
+  if (!pname)          return showAlert('กรุณากรอกชื่อ-นามสกุล', 'err');
+  if (!dbook||!dadmit) return showAlert('กรุณากรอกวันที่', 'err');
+  if (!rooms.length)   return showAlert('กรุณาเลือกประเภทห้อง', 'err');
+
+  // ===== ตรวจซ้ำก่อนบันทึก =====
+  const hnNorm = normHN(hn);
+  const hnDups = data.filter(r => normHN(r.hn) === hnNorm);
+  if (hnDups.length) {
+    const list = hnDups.map(r => '• ' + r.pname + ' (Admit: ' + fmtDate(r.dadmit) + ')').join('\n');
+    if (!confirm('⚠️ HN นี้มีการจองอยู่แล้ว ' + hnDups.length + ' รายการ:\n' + list + '\n\nต้องการบันทึกต่อไปหรือไม่?'))
+      return;
+  }
+
+  const nameDups = data.filter(r => {
+    const rn = normName(r.pname);
+    const vn = normName(pname);
+    const fw = vn.split(' ').filter(w => w.length >= 2)[0] || '';
+    return rn === vn || (fw.length >= 2 && rn.includes(fw));
+  });
+  // แจ้งซ้ำชื่อเฉพาะกรณีไม่ซ้ำ HN (ซ้ำ HN แจ้งแล้ว)
+  if (!hnDups.length && nameDups.length) {
+    const list = nameDups.map(r => '• ' + r.pname + ' HN: ' + r.hn + ' (Admit: ' + fmtDate(r.dadmit) + ')').join('\n');
+    if (!confirm('⚠️ พบชื่อที่คล้ายกัน ' + nameDups.length + ' รายการ:\n' + list + '\n\nต้องการบันทึกต่อไปหรือไม่?'))
+      return;
+  }
+
   const btn = document.getElementById('btn-save');
   btn.disabled = true; btn.textContent = '⏳ กำลังบันทึก...';
   showLoading(true);
@@ -549,7 +638,10 @@ async function saveBooking() {
     document.querySelector('input[name=src][value=counter]').checked = true;
     document.querySelectorAll('#room-opts input').forEach(c => c.checked = false);
     renderTags();
+    clearDupWarnings();
     showAlert('✅ บันทึกสำเร็จ!', 'ok');
+    // รีเฟรช data cache หลังบันทึก
+    loadDataSilent();
   } catch(e) { showAlert('❌ บันทึกไม่สำเร็จ กรุณาลองใหม่', 'err'); }
   btn.disabled = false; btn.textContent = '💾 บันทึกการจอง';
   showLoading(false);
@@ -587,6 +679,7 @@ function openEdit(id) {
   else document.querySelector('input[name=e-src][value=counter]').checked = true;
   document.getElementById('edit-modal').classList.add('open');
 }
+
 function closeEdit() { editingId = null; document.getElementById('edit-modal').classList.remove('open'); }
 
 async function saveEdit() {
@@ -601,9 +694,20 @@ async function saveEdit() {
   const note   = document.getElementById('e-note').value.trim();
   const src    = document.querySelector('input[name=e-src]:checked')?.value || 'counter';
   const rooms  = [...document.querySelectorAll('#e-room-opts input:checked')].map(c => c.value);
+
   if (!hn)           return showAlert('กรุณากรอก HN', 'err');
   if (!pname)        return showAlert('กรุณากรอกชื่อ-นามสกุล', 'err');
   if (!rooms.length) return showAlert('กรุณาเลือกประเภทห้อง', 'err');
+
+  // ตรวจซ้ำ HN ในการแก้ไข (ยกเว้น record ตัวเอง)
+  const hnNorm = normHN(hn);
+  const hnDups = data.filter(r => normHN(r.hn) === hnNorm && String(r.id) !== String(editingId));
+  if (hnDups.length) {
+    const list = hnDups.map(r => '• ' + r.pname + ' (Admit: ' + fmtDate(r.dadmit) + ')').join('\n');
+    if (!confirm('⚠️ HN นี้มีการจองอยู่แล้ว ' + hnDups.length + ' รายการ:\n' + list + '\n\nต้องการบันทึกต่อไปหรือไม่?'))
+      return;
+  }
+
   const btn = document.getElementById('btn-save-edit');
   btn.disabled = true; btn.textContent = '⏳ กำลังบันทึก...';
   showLoading(true);
@@ -634,12 +738,14 @@ function parseDate(d) {
   if (p.length === 3) return { y: parseInt(p[0]), m: parseInt(p[1]), d: parseInt(p[2]) };
   return null;
 }
+
 function fmtDate(d) {
   const dt = parseDate(d);
   if (!dt) return '-';
   const m = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
   return String(dt.d).padStart(2,'0') + ' ' + m[dt.m-1] + ' ' + (dt.y + 543);
 }
+
 function fmtDateXL(d) {
   const dt = parseDate(d);
   if (!dt) return '-';
@@ -822,6 +928,12 @@ function showAlert(msg, type) {
   el.textContent = msg; el.style.display = 'block';
   setTimeout(() => { el.style.display = 'none'; }, 4000);
 }
+
+// ===== EVENT LISTENERS สำหรับ real-time duplicate check =====
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('hn').addEventListener('input', checkDupHN);
+  document.getElementById('pname').addEventListener('input', checkDupName);
+});
 </script>
 </body>
 </html>
