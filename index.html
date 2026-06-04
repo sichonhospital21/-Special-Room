@@ -395,6 +395,26 @@ let isLoading = false;
 function normHN(v){ return String(v).trim().replace(/^'+/,'').toLowerCase(); }
 function normName(v){ return String(v).trim().replace(/\s+/g,' ').toLowerCase(); }
 
+// แยกชื่อจริงและนามสกุลออกจาก full name (รองรับคำนำหน้า)
+function splitName(full) {
+  const prefixes = ['นางสาว','น.ส.','นาง','นาย','ด.ช.','ด.ญ.','เด็กชาย','เด็กหญิง'];
+  let s = normName(full);
+  for (const p of prefixes) {
+    if (s.startsWith(p)) { s = s.slice(p.length).trim(); break; }
+  }
+  const parts = s.split(' ').filter(Boolean);
+  return { first: parts[0] || '', last: parts[parts.length - 1] || '', all: s };
+}
+
+// ถือว่า "คล้ายกัน" เมื่อ: ชื่อจริงตรงกัน AND นามสกุลตรงกัน (หรือชื่อเต็มเหมือนกันทั้งหมด)
+function similarName(a, b) {
+  if (a.all === b.all) return true;
+  if (a.first && b.first && a.last && b.last) {
+    return a.first === b.first && a.last === b.last;
+  }
+  return false;
+}
+
 function checkDupHN(){
   const val = normHN(document.getElementById('hn').value);
   const el  = document.getElementById('hn-warn');
@@ -410,14 +430,12 @@ function checkDupHN(){
 }
 
 function checkDupName(){
-  const val = normName(document.getElementById('pname').value);
+  const val = document.getElementById('pname').value;
   const el  = document.getElementById('pname-warn');
-  if(val.length < 2 || !data.length){ el.style.display='none'; return; }
-  const firstWord = val.split(' ').filter(w => w.length >= 2)[0] || '';
-  const dups = data.filter(r => {
-    const rn = normName(r.pname);
-    return rn === val || (firstWord.length >= 2 && rn.includes(firstWord));
-  });
+  if(val.trim().length < 2 || !data.length){ el.style.display='none'; return; }
+  const inputName = splitName(val);
+  if(!inputName.first){ el.style.display='none'; return; }
+  const dups = data.filter(r => similarName(inputName, splitName(r.pname)));
   if(!dups.length){ el.style.display='none'; return; }
   el.innerHTML = '⚠️ พบชื่อที่คล้ายกัน ' + dups.length + ' รายการ:<br>' +
     dups.slice(0,3).map(r =>
@@ -450,7 +468,6 @@ async function doLogin() {
       document.getElementById('hdr-role').textContent = json.role === 'admin' ? '👑 Admin' : '👤 User';
       setupTabs();
       document.getElementById('dbook').value = new Date().toISOString().split('T')[0];
-      // โหลด data ทันทีเพื่อให้ตรวจซ้ำ real-time ได้ทุก role
       loadDataSilent();
     } else {
       showLoginErr(json.message || 'เข้าสู่ระบบไม่สำเร็จ');
@@ -482,7 +499,6 @@ function setupTabs() {
 }
 
 // ===== DATA =====
-// โหลดแบบเงียบๆ (ไม่แสดง loading bar / alert) เพื่อใช้ตรวจซ้ำ
 async function loadDataSilent() {
   try {
     const res = await fetch(GAS_URL);
@@ -604,7 +620,7 @@ async function saveBooking() {
   if (!dbook||!dadmit) return showAlert('กรุณากรอกวันที่', 'err');
   if (!rooms.length)   return showAlert('กรุณาเลือกประเภทห้อง', 'err');
 
-  // ===== ตรวจซ้ำก่อนบันทึก =====
+  // ตรวจซ้ำ HN ก่อนบันทึก
   const hnNorm = normHN(hn);
   const hnDups = data.filter(r => normHN(r.hn) === hnNorm);
   if (hnDups.length) {
@@ -613,13 +629,9 @@ async function saveBooking() {
       return;
   }
 
-  const nameDups = data.filter(r => {
-    const rn = normName(r.pname);
-    const vn = normName(pname);
-    const fw = vn.split(' ').filter(w => w.length >= 2)[0] || '';
-    return rn === vn || (fw.length >= 2 && rn.includes(fw));
-  });
-  // แจ้งซ้ำชื่อเฉพาะกรณีไม่ซ้ำ HN (ซ้ำ HN แจ้งแล้ว)
+  // ตรวจซ้ำชื่อ (ชื่อจริง + นามสกุล ต้องตรงกันทั้งคู่)
+  const inputName = splitName(pname);
+  const nameDups = data.filter(r => similarName(inputName, splitName(r.pname)));
   if (!hnDups.length && nameDups.length) {
     const list = nameDups.map(r => '• ' + r.pname + ' HN: ' + r.hn + ' (Admit: ' + fmtDate(r.dadmit) + ')').join('\n');
     if (!confirm('⚠️ พบชื่อที่คล้ายกัน ' + nameDups.length + ' รายการ:\n' + list + '\n\nต้องการบันทึกต่อไปหรือไม่?'))
@@ -640,7 +652,6 @@ async function saveBooking() {
     renderTags();
     clearDupWarnings();
     showAlert('✅ บันทึกสำเร็จ!', 'ok');
-    // รีเฟรช data cache หลังบันทึก
     loadDataSilent();
   } catch(e) { showAlert('❌ บันทึกไม่สำเร็จ กรุณาลองใหม่', 'err'); }
   btn.disabled = false; btn.textContent = '💾 บันทึกการจอง';
@@ -929,7 +940,7 @@ function showAlert(msg, type) {
   setTimeout(() => { el.style.display = 'none'; }, 4000);
 }
 
-// ===== EVENT LISTENERS สำหรับ real-time duplicate check =====
+// ===== EVENT LISTENERS =====
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('hn').addEventListener('input', checkDupHN);
   document.getElementById('pname').addEventListener('input', checkDupName);
