@@ -94,6 +94,7 @@
   table.list tr:hover td{background:#f5faf5}
   .badge-fb{background:#dbeafe;color:#1e40af;font-size:11px;padding:2px 7px;border-radius:10px}
   .badge-cnt{background:#dcfce7;color:#166534;font-size:11px;padding:2px 7px;border-radius:10px}
+  .badge-line{background:#dcfce7;color:#00632e;font-size:11px;padding:2px 7px;border-radius:10px;border:1px solid #06c755}
   .badge-other{background:#f3f4f6;color:#374151;font-size:11px;padding:2px 7px;border-radius:10px}
   .btn-edit{background:white;border:1px solid #1a5c9e;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;color:#1a5c9e;font-family:'Sarabun',sans-serif;display:block;width:100%;margin-bottom:4px}
   .btn-edit:hover{background:#dbeafe}
@@ -246,6 +247,7 @@
         <div class="src-opts">
           <label class="src-opt"><input type="radio" name="src" value="counter" checked> เคาน์เตอร์ประชาสัมพันธ์</label>
           <label class="src-opt"><input type="radio" name="src" value="fb"> Facebook</label>
+          <label class="src-opt"><input type="radio" name="src" value="line"> Line OA</label>
           <label class="src-opt"><input type="radio" name="src" value="other"> อื่นๆ</label>
         </div>
       </div>
@@ -366,6 +368,7 @@
         <div class="src-opts" style="margin-top:6px">
           <label class="src-opt"><input type="radio" name="e-src" value="counter"> เคาน์เตอร์ประชาสัมพันธ์</label>
           <label class="src-opt"><input type="radio" name="e-src" value="fb"> Facebook</label>
+          <label class="src-opt"><input type="radio" name="e-src" value="line"> Line OA</label>
           <label class="src-opt"><input type="radio" name="e-src" value="other"> อื่นๆ</label>
         </div>
       </div>
@@ -759,8 +762,8 @@ function fmtDateXL(d) {
 }
 
 // ===== RENDER LIST =====
-function srcLabel(s) { if (s==='fb') return 'Facebook'; if (s==='counter') return 'เคาน์เตอร์ประชาสัมพันธ์'; return 'อื่นๆ'; }
-function srcBadge(s) { if (s==='fb') return '<span class="badge-fb">FB</span>'; if (s==='counter') return '<span class="badge-cnt">เคาน์เตอร์</span>'; return '<span class="badge-other">อื่นๆ</span>'; }
+function srcLabel(s) { if (s==='fb') return 'Facebook'; if (s==='counter') return 'เคาน์เตอร์ประชาสัมพันธ์'; if (s==='line') return 'Line OA'; return 'อื่นๆ'; }
+function srcBadge(s) { if (s==='fb') return '<span class="badge-fb">FB</span>'; if (s==='counter') return '<span class="badge-cnt">เคาน์เตอร์</span>'; if (s==='line') return '<span class="badge-line">Line OA</span>'; return '<span class="badge-other">อื่นๆ</span>'; }
 
 function setSort(key) {
   if (sortKey === key) { sortAsc = !sortAsc; } else { sortKey = key; sortAsc = key==='pname'||key==='doctor'||key==='hn'; }
