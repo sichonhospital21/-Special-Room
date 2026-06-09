@@ -265,6 +265,7 @@
         <button onclick="clearSearch()">✖ ล้าง</button>
       </div>
       <div class="sort-bar">
+        <button id="btn-filter-today" onclick="toggleFilterToday()" style="margin-right:10px; padding:6px 12px; background:white; color:#d97706; border:1px solid #d97706; border-radius:20px; font-size:12px; font-weight:600; cursor:pointer; font-family:'Sarabun',sans-serif; transition:all 0.15s;">🚨 แอดมิทวันนี้</button>
         <span class="sort-label">เรียงตาม:</span>
         <button class="sort-btn active" onclick="setSort('id')"      id="sort-id">📅 วันที่บันทึก</button>
         <button class="sort-btn"        onclick="setSort('dbook')"  id="sort-dbook">🗓️ วันที่จอง</button>
@@ -439,11 +440,26 @@ let currentUser = null;
 let searchTimer = null;
 let searchableCache = [];
 let isLoading = false;
+let filterToday = false; // ตัวแปรสำหรับเช็คสถานะปุ่ม แอดมิทวันนี้
 
 // Chart instances — kept so we can destroy before re-draw
 let dbRoomChart = null;
 let dbSrcChart  = null;
 let dbTrendChart = null;
+
+// ===== กรองเฉพาะแอดมิทวันนี้ =====
+function toggleFilterToday() {
+  filterToday = !filterToday;
+  const btn = document.getElementById('btn-filter-today');
+  if (filterToday) {
+    btn.style.background = '#d97706';
+    btn.style.color = 'white';
+  } else {
+    btn.style.background = 'white';
+    btn.style.color = '#d97706';
+  }
+  renderList();
+}
 
 // ===== DUPLICATE CHECK =====
 function normHN(v){ return String(v).trim().replace(/^'+/,'').toLowerCase(); }
@@ -868,6 +884,16 @@ function renderList() {
     filtered = data.filter(r => matchedIds.includes(String(r.id)));
   }
 
+  // --- กรองเฉพาะรายการที่ต้องแอดมิทวันนี้ ---
+  if (filterToday) {
+    const now = new Date();
+    const todayKey = toDateKey({ y:now.getFullYear(), m:now.getMonth()+1, d:now.getDate() });
+    filtered = filtered.filter(r => {
+      const dt = parseDate(r.dadmit);
+      return dt && toDateKey(dt) === todayKey;
+    });
+  }
+
   filtered.sort((a,b) => {
     let va = a[sortKey]||'', vb = b[sortKey]||'';
     if (sortKey === 'id') { va = Number(va); vb = Number(vb); }
@@ -877,7 +903,12 @@ function renderList() {
 
   if (!data.length) { tb.innerHTML = ''; em.style.display = 'block'; rc.textContent = ''; return; }
   em.style.display = 'none';
-  rc.textContent = q ? `พบ ${filtered.length} รายการ จากทั้งหมด ${data.length} รายการ` : `ทั้งหมด ${data.length} รายการ`;
+  
+  // อัปเดตข้อความจำนวนรายการ ให้เข้ากับโหมดการกดปุ่ม
+  rc.textContent = filterToday 
+    ? `🚨 แอดมิทวันนี้ ${filtered.length} รายการ (จากทั้งหมด ${data.length} รายการ)`
+    : (q ? `พบ ${filtered.length} รายการ จากทั้งหมด ${data.length} รายการ` : `ทั้งหมด ${data.length} รายการ`);
+
   if (!filtered.length) { tb.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:24px;color:#999">ไม่พบรายการที่ค้นหา</td></tr>`; return; }
 
   tb.innerHTML = filtered.map(r => `<tr>
@@ -1036,7 +1067,6 @@ function renderDashboard() {
     return;
   }
   tbody.innerHTML = admitKeys.map(k => {
-    // เอา const dt = parseDate(k); ออกไป แล้วส่ง k เข้า fmtDate ตรงๆ เลย
     const cnt = admitMap[k];
     const pct = Math.round(cnt / admitMax * 100);
     const isToday = k === todayKey;
