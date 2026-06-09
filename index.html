@@ -6,6 +6,7 @@
 <title>ระบบจองห้องพิเศษ — โรงพยาบาลสิชล</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap');
   *{box-sizing:border-box;margin:0;padding:0}
@@ -110,27 +111,28 @@
   .dup-warn{display:none;margin-top:6px;padding:10px 12px;background:#fffbeb;border:1px solid #f59e0b;border-radius:8px;font-size:13px;color:#92400e;line-height:1.5}
   .dup-warn strong{color:#78350f}
 
-  /* === STATS DASHBOARD === */
-  .stats-dashboard{margin-bottom:20px}
-  .stats-title{font-size:14px;font-weight:700;color:#2d7a3a;margin-bottom:10px;display:flex;align-items:center;gap:8px}
-  .stats-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
-  .stat-card{border-radius:12px;padding:16px;text-align:center;position:relative;overflow:hidden}
-  .stat-card-day{background:linear-gradient(135deg,#e0f5e5,#c6ead0);border:1px solid #80c890}
-  .stat-card-week{background:linear-gradient(135deg,#eef2ff,#dde3fc);border:1px solid #c7d2fe}
-  .stat-card-month{background:linear-gradient(135deg,#fff7ed,#feecd8);border:1px solid #fed7aa}
-  .stat-label{font-size:12px;font-weight:600;margin-bottom:6px}
-  .stat-card-day .stat-label{color:#1a5c25}
-  .stat-card-week .stat-label{color:#3730a3}
-  .stat-card-month .stat-label{color:#9a3412}
-  .stat-num{font-size:28px;font-weight:700;line-height:1}
-  .stat-card-day .stat-num{color:#2d7a3a}
-  .stat-card-week .stat-num{color:#4338ca}
-  .stat-card-month .stat-num{color:#c2410c}
-  .stat-sub{font-size:11px;margin-top:4px;opacity:0.7}
-  .stat-card-day .stat-sub{color:#1a5c25}
-  .stat-card-week .stat-sub{color:#3730a3}
-  .stat-card-month .stat-sub{color:#9a3412}
-  .stat-loading{font-size:11px;color:#999;text-align:center;padding:4px 0;display:none}
+  /* ===== DASHBOARD ===== */
+  .db-metric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+  .db-metric-card{background:#f5faf5;border:1px solid #c8e6cc;border-radius:12px;padding:16px;text-align:center}
+  .db-metric-label{font-size:12px;color:#555;margin-bottom:6px;font-weight:600}
+  .db-metric-value{font-size:28px;font-weight:700;color:#2d7a3a;line-height:1}
+  .db-metric-sub{font-size:11px;color:#888;margin-top:4px}
+  .db-charts-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+  .db-chart-card{background:white;border:1px solid #e0e0e0;border-radius:12px;padding:16px}
+  .db-chart-full{background:white;border:1px solid #e0e0e0;border-radius:12px;padding:16px;margin-bottom:14px}
+  .db-chart-title{font-size:14px;font-weight:600;color:#333;margin-bottom:10px}
+  .db-legend{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px}
+  .db-legend-item{display:flex;align-items:center;gap:5px;font-size:12px;color:#555}
+  .db-legend-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+  .db-admit-table{width:100%;border-collapse:collapse;font-size:13px}
+  .db-admit-table th{background:#f5f5f5;color:#555;font-weight:600;padding:8px 10px;text-align:left;border-bottom:1px solid #e0e0e0}
+  .db-admit-table td{padding:8px 10px;border-bottom:1px solid #f0f0f0;color:#222;vertical-align:middle}
+  .db-admit-table tr:last-child td{border-bottom:none}
+  .db-bar-bg{background:#e0e0e0;border-radius:3px;height:7px;width:100%}
+  .db-bar-fill{height:7px;border-radius:3px;background:#2d7a3a;transition:width 0.4s}
+  .db-refresh-btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 16px;background:white;color:#2d7a3a;border:1px solid #2d7a3a;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Sarabun',sans-serif;margin-bottom:16px}
+  .db-refresh-btn:hover{background:#e0f5e5}
+  .db-no-data{text-align:center;padding:20px;color:#aaa;font-size:13px}
 
   /* MODAL */
   .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:999;align-items:center;justify-content:center;padding:16px}
@@ -145,17 +147,20 @@
   .btn-save-edit:hover{background:#0C447C}
   .btn-save-edit:disabled{background:#aaa;cursor:not-allowed}
   .btn-cancel-edit{padding:10px 20px;background:white;color:#666;border:1px solid #ccc;border-radius:8px;font-size:14px;cursor:pointer;font-family:'Sarabun',sans-serif}
+
   /* LOG TABLE */
   table.log{width:100%;border-collapse:collapse;font-size:13px}
   table.log th{background:#555;color:white;padding:8px;text-align:left;white-space:nowrap}
   table.log td{padding:7px 8px;border-bottom:1px solid #eee;color:#222;vertical-align:top}
   table.log tr:hover td{background:#f9f9f9}
+
   @media(max-width:600px){
     .row2,.row3{grid-template-columns:1fr}
     body{padding:8px}
     .hdr h1{font-size:15px}
     .hdr-user{display:none}
-    .stats-grid{grid-template-columns:1fr}
+    .db-metric-grid{grid-template-columns:1fr 1fr}
+    .db-charts-row{grid-template-columns:1fr}
   }
 </style>
 </head>
@@ -198,15 +203,15 @@
   <div id="loading-bar" class="loading-bar">⏳ กำลังโหลดข้อมูล...</div>
   <div class="tabs" id="tabs-bar">
     <button class="tab active" onclick="sw('form')">📋 บันทึกการจอง</button>
-    <button class="tab" id="tab-list" onclick="sw('list')">📄 รายการจอง</button>
-    <button class="tab" id="tab-log" onclick="sw('log')">📝 Log การแก้ไข</button>
+    <button class="tab" id="tab-list"      onclick="sw('list')">📄 รายการจอง</button>
+    <button class="tab" id="tab-dashboard" onclick="sw('dashboard')">📊 Dashboard</button>
+    <button class="tab" id="tab-log"       onclick="sw('log')">📝 Log การแก้ไข</button>
   </div>
   <div class="body">
     <div id="alert-box" class="alert"></div>
 
-    <!-- TAB: บันทึกการจอง -->
+    <!-- ===== TAB: บันทึกการจอง ===== -->
     <div id="sec-form" class="sec active">
-
       <div class="section-title">ข้อมูลผู้ป่วย</div>
       <div class="row2">
         <div class="fg">
@@ -255,48 +260,24 @@
       <button class="btn-primary" id="btn-save" onclick="saveBooking()">💾 บันทึกการจอง</button>
     </div>
 
-    <!-- TAB: รายการจอง (Admin only) -->
+    <!-- ===== TAB: รายการจอง ===== -->
     <div id="sec-list" class="sec">
-
-      <!-- STATS DASHBOARD -->
-      <div class="stats-dashboard">
-        <div class="stats-title">📊 สรุปสถิติการจองห้องพิเศษ</div>
-        <div class="stats-grid">
-          <div class="stat-card stat-card-day">
-            <div class="stat-label">📅 จองวันนี้</div>
-            <div class="stat-num" id="stat-day">—</div>
-            <div class="stat-sub">รายการ</div>
-          </div>
-          <div class="stat-card stat-card-week">
-            <div class="stat-label">🗓️ สัปดาห์นี้</div>
-            <div class="stat-num" id="stat-week">—</div>
-            <div class="stat-sub">รายการ</div>
-          </div>
-          <div class="stat-card stat-card-month">
-            <div class="stat-label">📆 เดือนนี้</div>
-            <div class="stat-num" id="stat-month">—</div>
-            <div class="stat-sub">รายการ</div>
-          </div>
-        </div>
-        <div class="stat-loading" id="stat-loading">⏳ กำลังโหลดสถิติ...</div>
-      </div>
-
       <div class="search-bar">
         <input type="text" id="search-input" placeholder="🔍 ค้นหา HN, ชื่อ, แพทย์, หัตถการ..." oninput="debounceSearch()">
         <button onclick="clearSearch()">✖ ล้าง</button>
       </div>
       <div class="sort-bar">
         <span class="sort-label">เรียงตาม:</span>
-        <button class="sort-btn active" onclick="setSort('id')" id="sort-id">📅 วันที่บันทึก</button>
-        <button class="sort-btn" onclick="setSort('dbook')" id="sort-dbook">🗓️ วันที่จอง</button>
-        <button class="sort-btn" onclick="setSort('dadmit')" id="sort-dadmit">🏥 วันที่ Admit</button>
-        <button class="sort-btn" onclick="setSort('doctor')" id="sort-doctor">👨‍⚕️ แพทย์</button>
-        <button class="sort-btn" onclick="setSort('pname')" id="sort-pname">🔤 ชื่อผู้ป่วย</button>
-        <button class="sort-btn" onclick="setSort('hn')" id="sort-hn">🔢 HN</button>
+        <button class="sort-btn active" onclick="setSort('id')"     id="sort-id">📅 วันที่บันทึก</button>
+        <button class="sort-btn"        onclick="setSort('dbook')"  id="sort-dbook">🗓️ วันที่จอง</button>
+        <button class="sort-btn"        onclick="setSort('dadmit')" id="sort-dadmit">🏥 วันที่ Admit</button>
+        <button class="sort-btn"        onclick="setSort('doctor')" id="sort-doctor">👨‍⚕️ แพทย์</button>
+        <button class="sort-btn"        onclick="setSort('pname')"  id="sort-pname">🔤 ชื่อผู้ป่วย</button>
+        <button class="sort-btn"        onclick="setSort('hn')"     id="sort-hn">🔢 HN</button>
       </div>
       <div class="result-count" id="result-count"></div>
       <div class="top-bar">
-        <button class="btn-excel" onclick="exportExcel()">📊 ดาวน์โหลด Excel (.xlsx)</button>
+        <button class="btn-excel"   onclick="exportExcel()">📊 ดาวน์โหลด Excel (.xlsx)</button>
         <button class="btn-refresh" onclick="loadData()">🔄 รีเฟรช</button>
       </div>
       <div class="tbl-wrap">
@@ -312,7 +293,81 @@
       </div>
     </div>
 
-    <!-- TAB: Log (Admin only) -->
+    <!-- ===== TAB: DASHBOARD ===== -->
+    <div id="sec-dashboard" class="sec">
+      <button class="db-refresh-btn" onclick="loadData(true)">🔄 รีเฟรชข้อมูล Dashboard</button>
+
+      <!-- Metric cards -->
+      <div class="db-metric-grid">
+        <div class="db-metric-card">
+          <div class="db-metric-label">📅 จองวันนี้</div>
+          <div class="db-metric-value" id="db-day">—</div>
+          <div class="db-metric-sub">รายการ</div>
+        </div>
+        <div class="db-metric-card" style="background:#eef2ff;border-color:#c7d2fe">
+          <div class="db-metric-label" style="color:#3730a3">🗓️ สัปดาห์นี้</div>
+          <div class="db-metric-value" style="color:#4338ca" id="db-week">—</div>
+          <div class="db-metric-sub">รายการ</div>
+        </div>
+        <div class="db-metric-card" style="background:#fff7ed;border-color:#fed7aa">
+          <div class="db-metric-label" style="color:#9a3412">📆 เดือนนี้</div>
+          <div class="db-metric-value" style="color:#c2410c" id="db-month">—</div>
+          <div class="db-metric-sub">รายการ</div>
+        </div>
+        <div class="db-metric-card" style="background:#f0fdf4;border-color:#bbf7d0">
+          <div class="db-metric-label" style="color:#166534">📋 ทั้งหมด</div>
+          <div class="db-metric-value" style="color:#15803d" id="db-total">—</div>
+          <div class="db-metric-sub">รายการ</div>
+        </div>
+      </div>
+
+      <!-- Doughnut charts row -->
+      <div class="db-charts-row">
+        <div class="db-chart-card">
+          <div class="db-chart-title">🏥 สัดส่วนประเภทห้องพิเศษ</div>
+          <div class="db-legend" id="db-room-legend"></div>
+          <div style="position:relative;height:220px;">
+            <canvas id="db-room-chart"></canvas>
+          </div>
+        </div>
+        <div class="db-chart-card">
+          <div class="db-chart-title">📡 ช่องทางการจอง</div>
+          <div class="db-legend" id="db-src-legend"></div>
+          <div style="position:relative;height:220px;">
+            <canvas id="db-src-chart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Trend chart -->
+      <div class="db-chart-full">
+        <div class="db-chart-title">📈 จำนวนการจองรายวัน (30 วันล่าสุด)</div>
+        <div style="position:relative;height:200px;">
+          <canvas id="db-trend-chart"></canvas>
+        </div>
+      </div>
+
+      <!-- Admit table -->
+      <div class="db-chart-full">
+        <div class="db-chart-title">📅 วันที่ Admit ที่มีการจองสูงสุด (14 วันข้างหน้า)</div>
+        <div class="tbl-wrap">
+          <table class="db-admit-table">
+            <thead>
+              <tr>
+                <th>วันที่ Admit</th>
+                <th>จำนวน (ราย)</th>
+                <th style="width:45%">สัดส่วน</th>
+              </tr>
+            </thead>
+            <tbody id="db-admit-tbody">
+              <tr><td colspan="3" class="db-no-data">กำลังโหลด...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== TAB: Log ===== -->
     <div id="sec-log" class="sec">
       <div class="top-bar" style="margin-bottom:14px">
         <button class="btn-refresh" style="width:100%" onclick="loadLog()">🔄 รีเฟรช Log</button>
@@ -394,6 +449,11 @@ let searchTimer = null;
 let searchableCache = [];
 let isLoading = false;
 
+// Chart instances — kept so we can destroy before re-draw
+let dbRoomChart = null;
+let dbSrcChart  = null;
+let dbTrendChart = null;
+
 // ===== DUPLICATE CHECK =====
 function normHN(v){ return String(v).trim().replace(/^'+/,'').toLowerCase(); }
 function normName(v){ return String(v).trim().replace(/\s+/g,' ').toLowerCase(); }
@@ -410,9 +470,8 @@ function splitName(full) {
 
 function similarName(a, b) {
   if (a.all === b.all) return true;
-  if (a.first && b.first && a.last && b.last) {
+  if (a.first && b.first && a.last && b.last)
     return a.first === b.first && a.last === b.last;
-  }
   return false;
 }
 
@@ -423,9 +482,7 @@ function checkDupHN(){
   const dups = data.filter(r => normHN(r.hn) === val);
   if(!dups.length){ el.style.display='none'; return; }
   el.innerHTML = '⚠️ HN นี้มีในระบบแล้ว ' + dups.length + ' รายการ:<br>' +
-    dups.slice(0,3).map(r =>
-      '• <strong>' + r.pname + '</strong> — Admit: ' + fmtDate(r.dadmit)
-    ).join('<br>') +
+    dups.slice(0,3).map(r => '• <strong>' + r.pname + '</strong> — Admit: ' + fmtDate(r.dadmit)).join('<br>') +
     (dups.length > 3 ? '<br>และอีก ' + (dups.length - 3) + ' รายการ...' : '');
   el.style.display='block';
 }
@@ -439,9 +496,7 @@ function checkDupName(){
   const dups = data.filter(r => similarName(inputName, splitName(r.pname)));
   if(!dups.length){ el.style.display='none'; return; }
   el.innerHTML = '⚠️ พบชื่อที่คล้ายกัน ' + dups.length + ' รายการ:<br>' +
-    dups.slice(0,3).map(r =>
-      '• <strong>' + r.pname + '</strong> HN: ' + r.hn + ' — Admit: ' + fmtDate(r.dadmit)
-    ).join('<br>') +
+    dups.slice(0,3).map(r => '• <strong>' + r.pname + '</strong> HN: ' + r.hn + ' — Admit: ' + fmtDate(r.dadmit)).join('<br>') +
     (dups.length > 3 ? '<br>และอีก ' + (dups.length - 3) + ' รายการ...' : '');
   el.style.display='block';
 }
@@ -459,23 +514,21 @@ async function doLogin() {
   const btn = document.getElementById('btn-login');
   btn.disabled = true; btn.textContent = '⏳ กำลังเข้าสู่ระบบ...';
   try {
-    const res = await fetch(GAS_URL, { method:'POST', body: JSON.stringify({ action:'login', username, password }) });
+    const res  = await fetch(GAS_URL, { method:'POST', body: JSON.stringify({ action:'login', username, password }) });
     const json = await res.json();
     if (json.status === 'ok') {
       currentUser = { username, name: json.name, role: json.role };
       document.getElementById('login-page').style.display = 'none';
       document.getElementById('main-app').style.display = 'block';
-      document.getElementById('hdr-name').textContent = json.name;
-      document.getElementById('hdr-role').textContent = json.role === 'admin' ? '👑 Admin' : '👤 User';
+      document.getElementById('hdr-name').textContent  = json.name;
+      document.getElementById('hdr-role').textContent  = json.role === 'admin' ? '👑 Admin' : '👤 User';
       setupTabs();
       document.getElementById('dbook').value = new Date().toISOString().split('T')[0];
       loadDataSilent();
     } else {
       showLoginErr(json.message || 'เข้าสู่ระบบไม่สำเร็จ');
     }
-  } catch(e) {
-    showLoginErr('เชื่อมต่อไม่ได้ กรุณาลองใหม่');
-  }
+  } catch(e) { showLoginErr('เชื่อมต่อไม่ได้ กรุณาลองใหม่'); }
   btn.disabled = false; btn.textContent = '🔐 เข้าสู่ระบบ';
 }
 
@@ -487,6 +540,7 @@ function showLoginErr(msg) {
 
 function doLogout() {
   currentUser = null; data = [];
+  destroyDashboardCharts();
   document.getElementById('main-app').style.display = 'none';
   document.getElementById('login-page').style.display = 'block';
   document.getElementById('l-user').value = '';
@@ -495,92 +549,68 @@ function doLogout() {
 
 function setupTabs() {
   const isAdmin = currentUser.role === 'admin';
-  document.getElementById('tab-list').style.display = isAdmin ? '' : 'none';
-  document.getElementById('tab-log').style.display = isAdmin ? '' : 'none';
+  document.getElementById('tab-list').style.display      = isAdmin ? '' : 'none';
+  document.getElementById('tab-dashboard').style.display = isAdmin ? '' : 'none';
+  document.getElementById('tab-log').style.display       = isAdmin ? '' : 'none';
 }
 
 // ===== DATA =====
-async function loadDataSilent() {
-  try {
-    const res = await fetch(GAS_URL);
-    const json = await res.json();
-    data = (json.data || []).map(r => ({
-      id: r.id, hn: r.hn, pname: r.pname, dbook: r.dbook, dadmit: r.dadmit,
-      doctor: r.doctor,
-      rooms: typeof r.rooms === 'string' ? r.rooms.split(', ').filter(Boolean) : (r.rooms || []),
-      reason: r.reason, phone: r.phone, note: r.note, src: r.src
-    }));
-    buildSearchCache();
-  } catch(e) { /* silent fail */ }
+function parseRaw(json) {
+  return (json.data || []).map(r => ({
+    id: r.id, hn: r.hn, pname: r.pname, dbook: r.dbook, dadmit: r.dadmit,
+    doctor: r.doctor,
+    rooms: typeof r.rooms === 'string' ? r.rooms.split(', ').filter(Boolean) : (r.rooms || []),
+    reason: r.reason, phone: r.phone, note: r.note, src: r.src
+  }));
 }
 
-async function loadData() {
+async function loadDataSilent() {
+  try {
+    const res  = await fetch(GAS_URL);
+    const json = await res.json();
+    data = parseRaw(json);
+    buildSearchCache();
+  } catch(e) { /* silent */ }
+}
+
+async function loadData(fromDashboard) {
   if (isLoading) return;
   showLoading(true);
   try {
-    const res = await fetch(GAS_URL);
+    const res  = await fetch(GAS_URL);
     const json = await res.json();
-    data = (json.data || []).map(r => ({
-      id: r.id, hn: r.hn, pname: r.pname, dbook: r.dbook, dadmit: r.dadmit,
-      doctor: r.doctor,
-      rooms: typeof r.rooms === 'string' ? r.rooms.split(', ').filter(Boolean) : (r.rooms || []),
-      reason: r.reason, phone: r.phone, note: r.note, src: r.src
-    }));
+    data = parseRaw(json);
     buildSearchCache();
     renderList();
-    computeStats();
-    showAlert('✅ โหลดข้อมูลสำเร็จ ' + data.length + ' รายการ', 'ok');
+    if (fromDashboard) {
+      renderDashboard();
+      showAlert('✅ โหลดข้อมูลสำเร็จ ' + data.length + ' รายการ', 'ok');
+    } else {
+      showAlert('✅ โหลดข้อมูลสำเร็จ ' + data.length + ' รายการ', 'ok');
+    }
   } catch(e) { showAlert('❌ โหลดข้อมูลไม่สำเร็จ', 'err'); }
   showLoading(false);
-}
-
-function computeStats() {
-  const todayDate  = new Date();
-  const startOfDay = new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate()).getTime();
-  const tmp  = new Date();
-  const diff = tmp.getDate() - tmp.getDay() + (tmp.getDay() === 0 ? -6 : 1);
-  const startOfWeek  = new Date(tmp.getFullYear(), tmp.getMonth(), diff).setHours(0,0,0,0);
-  const startOfMonth = new Date(todayDate.getFullYear(), todayDate.getMonth(), 1).getTime();
-  let countDay = 0, countWeek = 0, countMonth = 0;
-  data.forEach(r => {
-    const d = parseDate(r.dbook);
-    if (!d) return;
-    const t = new Date(d.y, d.m - 1, d.d).getTime();
-    if (t >= startOfDay)   countDay++;
-    if (t >= startOfWeek)  countWeek++;
-    if (t >= startOfMonth) countMonth++;
-  });
-  document.getElementById('stat-day').textContent   = countDay;
-  document.getElementById('stat-week').textContent  = countWeek;
-  document.getElementById('stat-month').textContent = countMonth;
 }
 
 async function loadLog() {
   showLoading(true);
   try {
-    const res = await fetch(GAS_URL + '?action=log');
+    const res  = await fetch(GAS_URL + '?action=log');
     const json = await res.json();
     const logs = json.logs || [];
-    const tb = document.getElementById('log-body');
-    const em = document.getElementById('log-empty');
-    if (!logs.length) {
-      tb.innerHTML = '';
-      em.style.display = 'block';
-      showLoading(false);
-      return;
-    }
+    const tb   = document.getElementById('log-body');
+    const em   = document.getElementById('log-empty');
+    if (!logs.length) { tb.innerHTML = ''; em.style.display = 'block'; showLoading(false); return; }
     em.style.display = 'none';
     tb.innerHTML = logs.reverse().map(l => {
       let displayDate = l[0];
       try {
         const d = new Date(l[0]);
-        if (!isNaN(d)) {
-          displayDate = d.toLocaleString('th-TH', {
-            year: 'numeric', month: 'short', day: '2-digit',
-            hour: '2-digit', minute: '2-digit', hour12: false
-          }) + ' น.';
-        }
-      } catch(e) { displayDate = l[0]; }
+        if (!isNaN(d)) displayDate = d.toLocaleString('th-TH', {
+          year:'numeric', month:'short', day:'2-digit',
+          hour:'2-digit', minute:'2-digit', hour12:false
+        }) + ' น.';
+      } catch(e) {}
       return `<tr>
         <td style="white-space:nowrap">${displayDate}</td>
         <td>${l[1]}</td><td>${l[2]}</td>
@@ -625,16 +655,14 @@ async function saveBooking() {
   const hnDups = data.filter(r => normHN(r.hn) === hnNorm);
   if (hnDups.length) {
     const list = hnDups.map(r => '• ' + r.pname + ' (Admit: ' + fmtDate(r.dadmit) + ')').join('\n');
-    if (!confirm('⚠️ HN นี้มีการจองอยู่แล้ว ' + hnDups.length + ' รายการ:\n' + list + '\n\nต้องการบันทึกต่อไปหรือไม่?'))
-      return;
+    if (!confirm('⚠️ HN นี้มีการจองอยู่แล้ว ' + hnDups.length + ' รายการ:\n' + list + '\n\nต้องการบันทึกต่อไปหรือไม่?')) return;
   }
 
   const inputName = splitName(pname);
-  const nameDups = data.filter(r => similarName(inputName, splitName(r.pname)));
+  const nameDups  = data.filter(r => similarName(inputName, splitName(r.pname)));
   if (!hnDups.length && nameDups.length) {
     const list = nameDups.map(r => '• ' + r.pname + ' HN: ' + r.hn + ' (Admit: ' + fmtDate(r.dadmit) + ')').join('\n');
-    if (!confirm('⚠️ พบชื่อที่คล้ายกัน ' + nameDups.length + ' รายการ:\n' + list + '\n\nต้องการบันทึกต่อไปหรือไม่?'))
-      return;
+    if (!confirm('⚠️ พบชื่อที่คล้ายกัน ' + nameDups.length + ' รายการ:\n' + list + '\n\nต้องการบันทึกต่อไปหรือไม่?')) return;
   }
 
   const btn = document.getElementById('btn-save');
@@ -680,10 +708,10 @@ function openEdit(id) {
   document.getElementById('e-reason').value = r.reason || '';
   document.getElementById('e-phone').value  = r.phone || '';
   document.getElementById('e-note').value   = r.note || '';
-  const toInput = (d) => { const dt = parseDate(d); if (!dt) return ''; return dt.y + '-' + String(dt.m).padStart(2,'0') + '-' + String(dt.d).padStart(2,'0'); };
+  const toInput = d => { const dt = parseDate(d); if (!dt) return ''; return dt.y+'-'+String(dt.m).padStart(2,'0')+'-'+String(dt.d).padStart(2,'0'); };
   document.getElementById('e-dbook').value  = toInput(r.dbook);
   document.getElementById('e-dadmit').value = toInput(r.dadmit);
-  document.querySelectorAll('#e-room-opts input').forEach(c => { c.checked = (r.rooms || []).includes(c.value); });
+  document.querySelectorAll('#e-room-opts input').forEach(c => { c.checked = (r.rooms||[]).includes(c.value); });
   const srcEl = document.querySelector(`input[name=e-src][value="${r.src}"]`);
   if (srcEl) srcEl.checked = true;
   else document.querySelector('input[name=e-src][value=counter]').checked = true;
@@ -713,8 +741,7 @@ async function saveEdit() {
   const hnDups = data.filter(r => normHN(r.hn) === hnNorm && String(r.id) !== String(editingId));
   if (hnDups.length) {
     const list = hnDups.map(r => '• ' + r.pname + ' (Admit: ' + fmtDate(r.dadmit) + ')').join('\n');
-    if (!confirm('⚠️ HN นี้มีการจองอยู่แล้ว ' + hnDups.length + ' รายการ:\n' + list + '\n\nต้องการบันทึกต่อไปหรือไม่?'))
-      return;
+    if (!confirm('⚠️ HN นี้มีการจองอยู่แล้ว ' + hnDups.length + ' รายการ:\n' + list + '\n\nต้องการบันทึกต่อไปหรือไม่?')) return;
   }
 
   const btn = document.getElementById('btn-save-edit');
@@ -740,30 +767,43 @@ function parseDate(d) {
   if (!d) return null;
   const s = String(d);
   if (s.includes('T')) {
-    const dt = new Date(new Date(s).getTime() + 7 * 60 * 60 * 1000);
-    return { y: dt.getUTCFullYear(), m: dt.getUTCMonth() + 1, d: dt.getUTCDate() };
+    const dt = new Date(new Date(s).getTime() + 7*3600000);
+    return { y: dt.getUTCFullYear(), m: dt.getUTCMonth()+1, d: dt.getUTCDate() };
   }
   const p = s.split('-');
-  if (p.length === 3) return { y: parseInt(p[0]), m: parseInt(p[1]), d: parseInt(p[2]) };
+  if (p.length === 3) return { y:parseInt(p[0]), m:parseInt(p[1]), d:parseInt(p[2]) };
   return null;
+}
+
+function toDateKey(dt) {
+  if (!dt) return '';
+  return dt.y + '-' + String(dt.m).padStart(2,'0') + '-' + String(dt.d).padStart(2,'0');
 }
 
 function fmtDate(d) {
   const dt = parseDate(d);
   if (!dt) return '-';
   const m = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
-  return String(dt.d).padStart(2,'0') + ' ' + m[dt.m-1] + ' ' + (dt.y + 543);
+  return String(dt.d).padStart(2,'0') + ' ' + m[dt.m-1] + ' ' + (dt.y+543);
 }
 
 function fmtDateXL(d) {
   const dt = parseDate(d);
   if (!dt) return '-';
-  return String(dt.d).padStart(2,'0') + '/' + String(dt.m).padStart(2,'0') + '/' + (dt.y + 543);
+  return String(dt.d).padStart(2,'0') + '/' + String(dt.m).padStart(2,'0') + '/' + (dt.y+543);
 }
 
 // ===== RENDER LIST =====
-function srcLabel(s) { if (s==='fb') return 'Facebook'; if (s==='counter') return 'เคาน์เตอร์ประชาสัมพันธ์'; if (s==='line') return 'Line OA'; return 'อื่นๆ'; }
-function srcBadge(s) { if (s==='fb') return '<span class="badge-fb">FB</span>'; if (s==='counter') return '<span class="badge-cnt">เคาน์เตอร์</span>'; if (s==='line') return '<span class="badge-line">Line OA</span>'; return '<span class="badge-other">อื่นๆ</span>'; }
+function srcLabel(s) {
+  if (s==='fb') return 'Facebook'; if (s==='counter') return 'เคาน์เตอร์ประชาสัมพันธ์';
+  if (s==='line') return 'Line OA'; return 'อื่นๆ';
+}
+function srcBadge(s) {
+  if (s==='fb')      return '<span class="badge-fb">FB</span>';
+  if (s==='counter') return '<span class="badge-cnt">เคาน์เตอร์</span>';
+  if (s==='line')    return '<span class="badge-line">Line OA</span>';
+  return '<span class="badge-other">อื่นๆ</span>';
+}
 
 function setSort(key) {
   if (sortKey === key) { sortAsc = !sortAsc; } else { sortKey = key; sortAsc = key==='pname'||key==='doctor'||key==='hn'; }
@@ -777,7 +817,7 @@ function buildSearchCache() {
     id: r.id,
     text: [
       r.hn, r.pname, r.doctor, r.reason, r.phone, r.note, r.src,
-      Array.isArray(r.rooms) ? r.rooms.join(' ') : String(r.rooms || ''),
+      Array.isArray(r.rooms) ? r.rooms.join(' ') : String(r.rooms||''),
       srcLabel(r.src), fmtDate(r.dbook), fmtDate(r.dadmit)
     ].join(' ').toLowerCase()
   }));
@@ -808,7 +848,7 @@ function renderList() {
   }
 
   filtered.sort((a,b) => {
-    let va = a[sortKey] || '', vb = b[sortKey] || '';
+    let va = a[sortKey]||'', vb = b[sortKey]||'';
     if (sortKey === 'id') { va = Number(va); vb = Number(vb); }
     const cmp = va < vb ? -1 : va > vb ? 1 : 0;
     return sortAsc ? cmp : -cmp;
@@ -823,15 +863,168 @@ function renderList() {
     <td><strong>${r.hn}</strong></td><td>${r.pname}</td>
     <td>${fmtDate(r.dbook)}</td>
     <td style="color:#c07800;font-weight:600">${fmtDate(r.dadmit)}</td>
-    <td>${(r.rooms || []).join('<br>')}</td>
-    <td>${r.doctor || '-'}</td><td>${r.reason || '-'}</td><td>${r.phone || '-'}</td>
-    <td>${srcBadge(r.src)}${r.note ? '<br><span style="font-size:12px;color:#666">' + r.note + '</span>' : ''}</td>
+    <td>${(r.rooms||[]).join('<br>')}</td>
+    <td>${r.doctor||'-'}</td><td>${r.reason||'-'}</td><td>${r.phone||'-'}</td>
+    <td>${srcBadge(r.src)}${r.note ? '<br><span style="font-size:12px;color:#666">'+r.note+'</span>' : ''}</td>
     <td style="min-width:90px">
-      <button class="btn-edit" onclick="openEdit('${r.id}')">✏️ แก้ไข</button>
+      <button class="btn-edit"    onclick="openEdit('${r.id}')">✏️ แก้ไข</button>
       <button class="btn-receipt" onclick="downloadReceipt('${r.id}')">🖼️ ใบหลักฐาน</button>
-      <button class="btn-del" onclick="del('${r.id}')">🗑️ ลบ</button>
+      <button class="btn-del"     onclick="del('${r.id}')">🗑️ ลบ</button>
     </td>
   </tr>`).join('');
+}
+
+// ===== DASHBOARD =====
+const ROOM_COLORS = ['#378ADD','#639922','#BA7517','#D4537E','#1D9E75','#7F77DD'];
+const SRC_COLORS  = { counter:'#378ADD', fb:'#06C755', line:'#00B050', other:'#888780' };
+
+function destroyDashboardCharts() {
+  if (dbRoomChart)  { dbRoomChart.destroy();  dbRoomChart  = null; }
+  if (dbSrcChart)   { dbSrcChart.destroy();   dbSrcChart   = null; }
+  if (dbTrendChart) { dbTrendChart.destroy(); dbTrendChart = null; }
+}
+
+function renderDashboard() {
+  if (!data.length) return;
+
+  const now = new Date();
+  const todayKey  = toDateKey({ y:now.getFullYear(), m:now.getMonth()+1, d:now.getDate() });
+
+  // week start (Monday)
+  const tmp  = new Date(now);
+  const diff = tmp.getDate() - tmp.getDay() + (tmp.getDay()===0 ? -6 : 1);
+  const weekStartKey  = toDateKey({ y:now.getFullYear(), m:now.getMonth()+1, d:diff });
+  const monthStartKey = toDateKey({ y:now.getFullYear(), m:now.getMonth()+1, d:1 });
+
+  let countDay=0, countWeek=0, countMonth=0;
+  data.forEach(r => {
+    const dt = parseDate(r.dbook); if (!dt) return;
+    const k  = toDateKey(dt);
+    if (k >= monthStartKey) countMonth++;
+    if (k >= weekStartKey)  countWeek++;
+    if (k === todayKey)     countDay++;
+  });
+  document.getElementById('db-day').textContent   = countDay;
+  document.getElementById('db-week').textContent  = countWeek;
+  document.getElementById('db-month').textContent = countMonth;
+  document.getElementById('db-total').textContent = data.length;
+
+  destroyDashboardCharts();
+
+  // ----- Room Doughnut -----
+  const roomCount = {};
+  data.forEach(r => (r.rooms||[]).forEach(rm => { roomCount[rm]=(roomCount[rm]||0)+1; }));
+  const roomLabels = Object.keys(roomCount);
+  const roomVals   = roomLabels.map(k => roomCount[k]);
+  const roomCols   = roomLabels.map((_,i) => ROOM_COLORS[i % ROOM_COLORS.length]);
+  const roomTotal  = roomVals.reduce((a,b)=>a+b,0)||1;
+
+  document.getElementById('db-room-legend').innerHTML = roomLabels.map((l,i) =>
+    `<span class="db-legend-item"><span class="db-legend-dot" style="background:${roomCols[i]}"></span>${l} <strong>${Math.round(roomVals[i]/roomTotal*100)}%</strong></span>`
+  ).join('');
+
+  dbRoomChart = new Chart(document.getElementById('db-room-chart'), {
+    type: 'doughnut',
+    data: { labels: roomLabels, datasets: [{ data: roomVals, backgroundColor: roomCols, borderWidth: 2, borderColor: '#fff' }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ctx.label + ': ' + ctx.raw + ' (' + Math.round(ctx.raw/roomTotal*100) + '%)' } }
+      }
+    }
+  });
+
+  // ----- Source Doughnut -----
+  const srcCount = {};
+  data.forEach(r => { const s = r.src||'other'; srcCount[s]=(srcCount[s]||0)+1; });
+  const srcKeys  = Object.keys(srcCount);
+  const srcVals  = srcKeys.map(k => srcCount[k]);
+  const srcCols2 = srcKeys.map(k => SRC_COLORS[k] || '#888780');
+  const srcTotal = srcVals.reduce((a,b)=>a+b,0)||1;
+  const srcNames = { counter:'เคาน์เตอร์', fb:'Facebook', line:'Line OA', other:'อื่นๆ' };
+
+  document.getElementById('db-src-legend').innerHTML = srcKeys.map((k,i) =>
+    `<span class="db-legend-item"><span class="db-legend-dot" style="background:${srcCols2[i]}"></span>${srcNames[k]||k} <strong>${Math.round(srcVals[i]/srcTotal*100)}%</strong></span>`
+  ).join('');
+
+  dbSrcChart = new Chart(document.getElementById('db-src-chart'), {
+    type: 'doughnut',
+    data: { labels: srcKeys.map(k=>srcNames[k]||k), datasets: [{ data: srcVals, backgroundColor: srcCols2, borderWidth: 2, borderColor: '#fff' }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ctx.label + ': ' + ctx.raw + ' (' + Math.round(ctx.raw/srcTotal*100) + '%)' } }
+      }
+    }
+  });
+
+  // ----- Trend Line (30 days) -----
+  const days30 = [];
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(now); d.setDate(d.getDate()-i);
+    days30.push(toDateKey({ y:d.getFullYear(), m:d.getMonth()+1, d:d.getDate() }));
+  }
+  const trendMap = {};
+  data.forEach(r => { const dt=parseDate(r.dbook); if(dt){ const k=toDateKey(dt); trendMap[k]=(trendMap[k]||0)+1; }});
+  const trendVals   = days30.map(k => trendMap[k]||0);
+  const trendLabels = days30.map(k => { const p=k.split('-'); return String(parseInt(p[2]))+'/'+String(parseInt(p[1])); });
+
+  dbTrendChart = new Chart(document.getElementById('db-trend-chart'), {
+    type: 'line',
+    data: {
+      labels: trendLabels,
+      datasets: [{
+        label: 'จำนวนจอง',
+        data: trendVals,
+        borderColor: '#2d7a3a',
+        backgroundColor: 'rgba(45,122,58,0.1)',
+        fill: true,
+        tension: 0.3,
+        pointRadius: 3,
+        pointBackgroundColor: '#2d7a3a',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 1.5
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { font:{size:11}, maxRotation:45, autoSkip:true, maxTicksLimit:15 } },
+        y: { beginAtZero:true, ticks: { stepSize:1, font:{size:11} } }
+      }
+    }
+  });
+
+  // ----- Admit table (next 14 days) -----
+  const endDt = new Date(now); endDt.setDate(endDt.getDate()+14);
+  const endKey = toDateKey({ y:endDt.getFullYear(), m:endDt.getMonth()+1, d:endDt.getDate() });
+  const admitMap = {};
+  data.forEach(r => {
+    const dt = parseDate(r.dadmit); if (!dt) return;
+    const k  = toDateKey(dt);
+    if (k >= todayKey && k <= endKey) admitMap[k]=(admitMap[k]||0)+1;
+  });
+  const admitKeys = Object.keys(admitMap).sort();
+  const admitMax  = Math.max(...Object.values(admitMap), 1);
+  const tbody     = document.getElementById('db-admit-tbody');
+  if (!admitKeys.length) {
+    tbody.innerHTML = '<tr><td colspan="3" class="db-no-data">ไม่มีการ Admit ใน 14 วันข้างหน้า</td></tr>';
+    return;
+  }
+  tbody.innerHTML = admitKeys.map(k => {
+    const dt  = parseDate(k);
+    const cnt = admitMap[k];
+    const pct = Math.round(cnt / admitMax * 100);
+    const isToday = k === todayKey;
+    return `<tr${isToday?' style="background:#f5faf5"':''}>
+      <td>${fmtDate(dt)}${isToday ? ' <span style="background:#2d7a3a;color:white;font-size:10px;padding:2px 6px;border-radius:8px">วันนี้</span>' : ''}</td>
+      <td style="font-weight:600;color:#2d7a3a">${cnt} ราย</td>
+      <td><div class="db-bar-bg"><div class="db-bar-fill" style="width:${pct}%"></div></div></td>
+    </tr>`;
+  }).join('');
 }
 
 // ===== EXCEL =====
@@ -840,9 +1033,9 @@ function exportExcel() {
   const rows = data.map((r,i) => ({
     'ลำดับ': i+1, 'HN': r.hn, 'ชื่อ-นามสกุล': r.pname,
     'วันที่จอง': fmtDateXL(r.dbook), 'วันที่ Admit': fmtDateXL(r.dadmit),
-    'ประเภทห้องพิเศษ': (r.rooms || []).join(', '),
-    'แพทย์ผู้นัด': r.doctor || '-', 'หัตถการ/สาเหตุที่นัด': r.reason || '-',
-    'เบอร์ติดต่อ': r.phone || '-', 'ช่องทางการจอง': srcLabel(r.src), 'หมายเหตุ': r.note || '-'
+    'ประเภทห้องพิเศษ': (r.rooms||[]).join(', '),
+    'แพทย์ผู้นัด': r.doctor||'-', 'หัตถการ/สาเหตุที่นัด': r.reason||'-',
+    'เบอร์ติดต่อ': r.phone||'-', 'ช่องทางการจอง': srcLabel(r.src), 'หมายเหตุ': r.note||'-'
   }));
   const ws = XLSX.utils.json_to_sheet(rows);
   ws['!cols'] = [{wch:6},{wch:12},{wch:22},{wch:14},{wch:14},{wch:32},{wch:18},{wch:24},{wch:14},{wch:24},{wch:22}];
@@ -858,7 +1051,7 @@ function downloadReceipt(id) {
   const r = data.find(d => String(d.id) === String(id));
   if (!r) return;
   const refNo = 'REF-' + String(r.id).slice(-6);
-  const tpl = document.getElementById('receipt-tpl');
+  const tpl   = document.getElementById('receipt-tpl');
   tpl.innerHTML = `<div style="width:720px;background:white;padding:0;font-family:'Sarabun',sans-serif">
     <div style="background:linear-gradient(135deg,#2d7a3a,#1f5c28);padding:28px 36px;display:flex;align-items:center;gap:18px">
       <div style="width:60px;height:60px;background:white;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;">
@@ -873,8 +1066,8 @@ function downloadReceipt(id) {
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
           <div><div style="font-size:11px;color:#888;margin-bottom:4px">HN</div><div style="font-size:16px;font-weight:700;color:#111">${r.hn}</div></div>
           <div><div style="font-size:11px;color:#888;margin-bottom:4px">ชื่อ-นามสกุล</div><div style="font-size:16px;font-weight:700;color:#111">${r.pname}</div></div>
-          <div><div style="font-size:11px;color:#888;margin-bottom:4px">เบอร์ติดต่อ</div><div style="font-size:14px;color:#111">${r.phone || '-'}</div></div>
-          <div><div style="font-size:11px;color:#888;margin-bottom:4px">แพทย์ผู้นัด</div><div style="font-size:14px;color:#111">${r.doctor || '-'}</div></div>
+          <div><div style="font-size:11px;color:#888;margin-bottom:4px">เบอร์ติดต่อ</div><div style="font-size:14px;color:#111">${r.phone||'-'}</div></div>
+          <div><div style="font-size:11px;color:#888;margin-bottom:4px">แพทย์ผู้นัด</div><div style="font-size:14px;color:#111">${r.doctor||'-'}</div></div>
         </div>
       </div>
       <div style="background:#fffbf0;border:1.5px solid #f0d080;border-radius:12px;padding:22px 26px;margin-bottom:22px">
@@ -882,20 +1075,16 @@ function downloadReceipt(id) {
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
           <div><div style="font-size:11px;color:#888;margin-bottom:4px">วันที่จอง</div><div style="font-size:14px;color:#111">${fmtDate(r.dbook)}</div></div>
           <div><div style="font-size:11px;color:#888;margin-bottom:4px">วันที่ Admit</div><div style="font-size:18px;font-weight:700;color:#c07800">${fmtDate(r.dadmit)}</div></div>
-          <div style="grid-column:span 2"><div style="font-size:11px;color:#888;margin-bottom:8px">ประเภทห้องพิเศษที่จอง</div><div style="display:flex;flex-wrap:wrap;gap:7px">${(r.rooms || []).map(rm => `<span style="background:#2d7a3a;color:white;font-size:13px;padding:4px 14px;border-radius:20px">${rm}</span>`).join('')}</div></div>
-          <div style="grid-column:span 2"><div style="font-size:11px;color:#888;margin-bottom:4px">หัตถการ / สาเหตุที่นัด</div><div style="font-size:14px;color:#111">${r.reason || '-'}</div></div>
+          <div style="grid-column:span 2"><div style="font-size:11px;color:#888;margin-bottom:8px">ประเภทห้องพิเศษที่จอง</div><div style="display:flex;flex-wrap:wrap;gap:7px">${(r.rooms||[]).map(rm=>`<span style="background:#2d7a3a;color:white;font-size:13px;padding:4px 14px;border-radius:20px">${rm}</span>`).join('')}</div></div>
+          <div style="grid-column:span 2"><div style="font-size:11px;color:#888;margin-bottom:4px">หัตถการ / สาเหตุที่นัด</div><div style="font-size:14px;color:#111">${r.reason||'-'}</div></div>
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:22px">
         <div style="background:#f5f5f5;border-radius:10px;padding:16px 20px"><div style="font-size:11px;color:#888;margin-bottom:4px">ช่องทางการจอง</div><div style="font-size:14px;font-weight:600;color:#111">${srcLabel(r.src)}</div></div>
-        <div style="background:#f5f5f5;border-radius:10px;padding:16px 20px"><div style="font-size:11px;color:#888;margin-bottom:4px">หมายเหตุ</div><div style="font-size:14px;color:#111">${r.note || '-'}</div></div>
+        <div style="background:#f5f5f5;border-radius:10px;padding:16px 20px"><div style="font-size:11px;color:#888;margin-bottom:4px">หมายเหตุ</div><div style="font-size:14px;color:#111">${r.note||'-'}</div></div>
       </div>
-
-      <!-- ===== กล่องหมายเหตุสำคัญ ===== -->
       <div style="background:#fff8e1;border:1.5px solid #f0c040;border-radius:12px;padding:20px 24px;margin-bottom:22px">
-        <div style="font-size:14px;color:#7a5000;font-weight:700;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #f0d080">
-          * หมายเหตุ *
-        </div>
+        <div style="font-size:14px;color:#7a5000;font-weight:700;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #f0d080">* หมายเหตุ *</div>
         <ol style="padding-left:20px;margin:0;line-height:2;font-size:12.5px;color:#444">
           <li>สามารถจองห้องพิเศษล่วงหน้าได้ ไม่เกิน 5 วัน ก่อนวันนัดเข้ารับการรักษา</li>
           <li>การจองห้องพิเศษเป็นเพียง การลงลำดับคิวเท่านั้น ยังไม่สามารถยืนยันได้ว่าผู้รับบริการจะได้ห้องพักตามที่จองไว้หรือไม่</li>
@@ -908,19 +1097,20 @@ function downloadReceipt(id) {
           <li>โรงพยาบาล ไม่มีนโยบายเรียกเก็บค่าห้องพิเศษล่วงหน้าในทุกกรณี ผู้รับบริการสามารถชำระค่าห้องพิเศษได้ ณ จุดชำระเงินของโรงพยาบาล เมื่อเข้ารับบริการแล้วเท่านั้น</li>
         </ol>
       </div>
-
       <div style="border-top:1.5px dashed #ddd;padding-top:16px;display:flex;justify-content:space-between">
         <div style="font-size:12px;color:#aaa">พิมพ์โดยระบบจองห้องพิเศษ โรงพยาบาลสิชล</div>
         <div style="font-size:12px;color:#aaa">วันที่พิมพ์: ${new Date().toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'})}</div>
       </div>
     </div>
   </div>`;
+
   showAlert('⏳ กำลังสร้างใบหลักฐาน...', 'ok');
   setTimeout(() => {
     html2canvas(tpl, { scale:2, useCORS:true, backgroundColor:'#ffffff', width:720 }).then(canvas => {
       const link = document.createElement('a');
       link.download = 'ใบหลักฐานจองห้อง_' + r.hn + '_' + r.pname + '.png';
-      link.href = canvas.toDataURL('image/png'); link.click();
+      link.href = canvas.toDataURL('image/png');
+      link.click();
       tpl.innerHTML = '';
       showAlert('✅ ดาวน์โหลดใบหลักฐานเรียบร้อย', 'ok');
     }).catch(() => showAlert('❌ เกิดข้อผิดพลาด', 'err'));
@@ -942,17 +1132,19 @@ document.querySelectorAll('#room-opts input').forEach(c => c.addEventListener('c
 
 // ===== TABS =====
 function sw(tab) {
-  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ['form','list','log'][i] === tab));
+  const tabs = ['form','list','dashboard','log'];
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', tabs[i] === tab));
   document.querySelectorAll('.sec').forEach(s => s.classList.remove('active'));
   document.getElementById('sec-' + tab).classList.add('active');
-  if (tab === 'list') loadData();
-  if (tab === 'log')  loadLog();
+  if (tab === 'list')      loadData();
+  if (tab === 'dashboard') { if (!data.length) { loadData(true); } else { renderDashboard(); } }
+  if (tab === 'log')       loadLog();
 }
 
 // ===== ALERT =====
 function showAlert(msg, type) {
   const el = document.getElementById('alert-box');
-  el.className = 'alert alert-' + (type === 'ok' ? 'ok' : 'err');
+  el.className = 'alert alert-' + (type==='ok' ? 'ok' : 'err');
   el.textContent = msg; el.style.display = 'block';
   setTimeout(() => { el.style.display = 'none'; }, 4000);
 }
