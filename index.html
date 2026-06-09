@@ -210,7 +210,6 @@
   <div class="body">
     <div id="alert-box" class="alert"></div>
 
-    <!-- ===== TAB: บันทึกการจอง ===== -->
     <div id="sec-form" class="sec active">
       <div class="section-title">ข้อมูลผู้ป่วย</div>
       <div class="row2">
@@ -260,7 +259,6 @@
       <button class="btn-primary" id="btn-save" onclick="saveBooking()">💾 บันทึกการจอง</button>
     </div>
 
-    <!-- ===== TAB: รายการจอง ===== -->
     <div id="sec-list" class="sec">
       <div class="search-bar">
         <input type="text" id="search-input" placeholder="🔍 ค้นหา HN, ชื่อ, แพทย์, หัตถการ..." oninput="debounceSearch()">
@@ -268,7 +266,7 @@
       </div>
       <div class="sort-bar">
         <span class="sort-label">เรียงตาม:</span>
-        <button class="sort-btn active" onclick="setSort('id')"     id="sort-id">📅 วันที่บันทึก</button>
+        <button class="sort-btn active" onclick="setSort('id')"      id="sort-id">📅 วันที่บันทึก</button>
         <button class="sort-btn"        onclick="setSort('dbook')"  id="sort-dbook">🗓️ วันที่จอง</button>
         <button class="sort-btn"        onclick="setSort('dadmit')" id="sort-dadmit">🏥 วันที่ Admit</button>
         <button class="sort-btn"        onclick="setSort('doctor')" id="sort-doctor">👨‍⚕️ แพทย์</button>
@@ -293,11 +291,9 @@
       </div>
     </div>
 
-    <!-- ===== TAB: DASHBOARD ===== -->
     <div id="sec-dashboard" class="sec">
       <button class="db-refresh-btn" onclick="loadData(true)">🔄 รีเฟรชข้อมูล Dashboard</button>
 
-      <!-- Metric cards -->
       <div class="db-metric-grid">
         <div class="db-metric-card">
           <div class="db-metric-label">📅 จองวันนี้</div>
@@ -321,7 +317,6 @@
         </div>
       </div>
 
-      <!-- Doughnut charts row -->
       <div class="db-charts-row">
         <div class="db-chart-card">
           <div class="db-chart-title">🏥 สัดส่วนประเภทห้องพิเศษ</div>
@@ -339,7 +334,6 @@
         </div>
       </div>
 
-      <!-- Trend chart -->
       <div class="db-chart-full">
         <div class="db-chart-title">📈 จำนวนการจองรายวัน (30 วันล่าสุด)</div>
         <div style="position:relative;height:200px;">
@@ -347,7 +341,6 @@
         </div>
       </div>
 
-      <!-- Admit table -->
       <div class="db-chart-full">
         <div class="db-chart-title">📅 วันที่ Admit ที่มีการจองสูงสุด (14 วันข้างหน้า)</div>
         <div class="tbl-wrap">
@@ -367,7 +360,6 @@
       </div>
     </div>
 
-    <!-- ===== TAB: Log ===== -->
     <div id="sec-log" class="sec">
       <div class="top-bar" style="margin-bottom:14px">
         <button class="btn-refresh" style="width:100%" onclick="loadLog()">🔄 รีเฟรช Log</button>
@@ -386,7 +378,6 @@
 </div>
 </div>
 
-<!-- EDIT MODAL -->
 <div class="modal-bg" id="edit-modal">
   <div class="modal">
     <div class="modal-hdr">
@@ -765,13 +756,43 @@ async function saveEdit() {
 // ===== DATE =====
 function parseDate(d) {
   if (!d) return null;
-  const s = String(d);
+  const s = String(d).trim();
+
+  // 1. จัดการ Date Object จาก GAS (กรณีมีอักษร T)
   if (s.includes('T')) {
-    const dt = new Date(new Date(s).getTime() + 7*3600000);
-    return { y: dt.getUTCFullYear(), m: dt.getUTCMonth()+1, d: dt.getUTCDate() };
+    const dt = new Date(new Date(s).getTime() + 7 * 3600000);
+    if (!isNaN(dt.getTime())) {
+      return { y: dt.getUTCFullYear(), m: dt.getUTCMonth() + 1, d: dt.getUTCDate() };
+    }
   }
-  const p = s.split('-');
-  if (p.length === 3) return { y:parseInt(p[0]), m:parseInt(p[1]), d:parseInt(p[2]) };
+
+  // 2. ตรวจจับรูปแบบ YYYY-MM-DD ตรงๆ 
+  if (s.includes('-')) {
+    const p = s.split('-');
+    if (p.length >= 3) {
+      return { y: parseInt(p[0], 10), m: parseInt(p[1], 10), d: parseInt(p[2], 10) };
+    }
+  }
+
+  // 3. ป้องกันกรณี Google Sheets คืนค่ามาเป็นรูปแบบข้อความแบบ DD/MM/YYYY หรือ MM/DD/YYYY
+  if (s.includes('/')) {
+    const p = s.split(/[/\s:]+/); // เผื่อมีเวลาพ่วงท้ายมาด้วย
+    if (p.length >= 3) {
+      let year = parseInt(p[2], 10);
+      // เผื่อ Google Sheets คืนค่าปีมาเป็น พ.ศ. ให้แปลงกลับเป็น ค.ศ.
+      if (year > 2500) year -= 543; 
+      
+      // ฟอลแบ็คสมมติฐานเบื้องต้นเป็น DD/MM/YYYY ไว้ก่อน
+      return { y: year, m: parseInt(p[1], 10), d: parseInt(p[0], 10) };
+    }
+  }
+
+  // 4. ท้ายที่สุด ถ้าเป็นรูปแบบ Date string มาตรฐานที่ JavaScript รู้จัก
+  const dt = new Date(s);
+  if (!isNaN(dt.getTime())) {
+    return { y: dt.getFullYear(), m: dt.getMonth() + 1, d: dt.getDate() };
+  }
+
   return null;
 }
 
