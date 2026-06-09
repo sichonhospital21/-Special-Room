@@ -1036,12 +1036,12 @@ function renderDashboard() {
     return;
   }
   tbody.innerHTML = admitKeys.map(k => {
-    const dt  = parseDate(k);
+    // เอา const dt = parseDate(k); ออกไป แล้วส่ง k เข้า fmtDate ตรงๆ เลย
     const cnt = admitMap[k];
     const pct = Math.round(cnt / admitMax * 100);
     const isToday = k === todayKey;
     return `<tr${isToday?' style="background:#f5faf5"':''}>
-      <td>${fmtDate(dt)}${isToday ? ' <span style="background:#2d7a3a;color:white;font-size:10px;padding:2px 6px;border-radius:8px">วันนี้</span>' : ''}</td>
+      <td>${fmtDate(k)}${isToday ? ' <span style="background:#2d7a3a;color:white;font-size:10px;padding:2px 6px;border-radius:8px">วันนี้</span>' : ''}</td>
       <td style="font-weight:600;color:#2d7a3a">${cnt} ราย</td>
       <td><div class="db-bar-bg"><div class="db-bar-fill" style="width:${pct}%"></div></div></td>
     </tr>`;
