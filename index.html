@@ -264,6 +264,16 @@
         <input type="text" id="search-input" placeholder="🔍 ค้นหา HN, ชื่อ, แพทย์, หัตถการ..." oninput="debounceSearch()">
         <button onclick="clearSearch()">✖ ล้าง</button>
       </div>
+      
+      <div style="display:flex; gap:8px; margin-bottom:10px; align-items:center; background:#f0faf2; padding:10px 14px; border-radius:8px; border:1px solid #c8e6cc; flex-wrap:wrap;">
+        <span style="font-size:13px; font-weight:600; color:#1a5c25;">📅 ดึงข้อมูลย้อนหลัง:</span>
+        <input type="date" id="fetch-start" style="padding:6px 10px; border:1px solid #ccc; border-radius:6px; font-family:'Sarabun',sans-serif; font-size:13px;">
+        <span style="font-size:13px; color:#555;">ถึง</span>
+        <input type="date" id="fetch-end" style="padding:6px 10px; border:1px solid #ccc; border-radius:6px; font-family:'Sarabun',sans-serif; font-size:13px;">
+        <button onclick="fetchCustomDate()" style="padding:6px 14px; background:#1a5c9e; color:white; border:none; border-radius:6px; font-size:13px; cursor:pointer; font-family:'Sarabun',sans-serif; font-weight:600;">🔍 ดึงข้อมูล</button>
+        <button onclick="resetCustomDate()" style="padding:6px 14px; background:white; color:#666; border:1px solid #ccc; border-radius:6px; font-size:13px; cursor:pointer; font-family:'Sarabun',sans-serif;">✖ ค่าเริ่มต้น</button>
+      </div>
+      
       <div class="sort-bar">
         <button id="btn-filter-today" onclick="toggleFilterToday()" style="margin-right:10px; padding:6px 12px; background:white; color:#d97706; border:1px solid #d97706; border-radius:20px; font-size:12px; font-weight:600; cursor:pointer; font-family:'Sarabun',sans-serif; transition:all 0.15s;">🚨 แอดมิทวันนี้</button>
         <span class="sort-label">เรียงตาม:</span>
@@ -441,6 +451,31 @@ let searchTimer = null;
 let searchableCache = [];
 let isLoading = false;
 let filterToday = false; // ตัวแปรสำหรับเช็คสถานะปุ่ม แอดมิทวันนี้
+// ตัวแปรเก็บค่าวันที่ต้องการดึงข้อมูล
+let fetchStartDate = '';
+let fetchEndDate = '';
+
+// ฟังก์ชันเมื่อกดปุ่ม "ดึงข้อมูล"
+function fetchCustomDate() {
+  const s = document.getElementById('fetch-start').value;
+  const e = document.getElementById('fetch-end').value;
+  
+  if (!s || !e) return showAlert('กรุณาเลือกวันที่เริ่มต้นและสิ้นสุดให้ครบ', 'err');
+  if (s > e) return showAlert('วันที่เริ่มต้นต้องไม่มากกว่าวันที่สิ้นสุด', 'err');
+  
+  fetchStartDate = s;
+  fetchEndDate = e;
+  loadData(); // เรียกดึงข้อมูลใหม่
+}
+
+// ฟังก์ชันเมื่อกดปุ่ม "ค่าเริ่มต้น"
+function resetCustomDate() {
+  document.getElementById('fetch-start').value = '';
+  document.getElementById('fetch-end').value = '';
+  fetchStartDate = '';
+  fetchEndDate = '';
+  loadData(); // เรียกดึงข้อมูลแบบค่าเริ่มต้น (3 เดือนย้อนหลัง + อนาคต)
+}
 
 // Chart instances — kept so we can destroy before re-draw
 let dbRoomChart = null;
@@ -573,7 +608,12 @@ function parseRaw(json) {
 
 async function loadDataSilent() {
   try {
-    const res  = await fetch(GAS_URL);
+    let url = GAS_URL;
+    // ถ้ามีการเลือกวันที่ ให้แนบไปกับ URL
+    if (fetchStartDate && fetchEndDate) {
+      url += `?start=${fetchStartDate}&end=${fetchEndDate}`;
+    }
+    const res  = await fetch(url);
     const json = await res.json();
     data = parseRaw(json);
     buildSearchCache();
@@ -584,16 +624,27 @@ async function loadData(fromDashboard) {
   if (isLoading) return;
   showLoading(true);
   try {
-    const res  = await fetch(GAS_URL);
+    let url = GAS_URL;
+    // ถ้ามีการเลือกวันที่ ให้แนบไปกับ URL
+    if (fetchStartDate && fetchEndDate) {
+      url += `?start=${fetchStartDate}&end=${fetchEndDate}`;
+    }
+    
+    const res  = await fetch(url);
     const json = await res.json();
     data = parseRaw(json);
     buildSearchCache();
     renderList();
+    
     if (fromDashboard) {
       renderDashboard();
       showAlert('✅ โหลดข้อมูลสำเร็จ ' + data.length + ' รายการ', 'ok');
     } else {
-      showAlert('✅ โหลดข้อมูลสำเร็จ ' + data.length + ' รายการ', 'ok');
+      // ปรับข้อความแจ้งเตือนให้ตรงกับรูปแบบที่ดึง
+      let msg = fetchStartDate 
+        ? `✅ โหลดข้อมูลช่วง ${fmtDate(fetchStartDate)} ถึง ${fmtDate(fetchEndDate)} สำเร็จ (${data.length} รายการ)` 
+        : `✅ โหลดข้อมูลเริ่มต้นสำเร็จ (${data.length} รายการ)`;
+      showAlert(msg, 'ok');
     }
   } catch(e) { showAlert('❌ โหลดข้อมูลไม่สำเร็จ', 'err'); }
   showLoading(false);
