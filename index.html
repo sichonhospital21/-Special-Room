@@ -560,6 +560,7 @@ async function doLogin() {
     const json = await res.json();
     if (json.status === 'ok') {
       currentUser = { username, name: json.name, role: json.role };
+      sessionStorage.setItem('hosp_user', JSON.stringify(currentUser));
       document.getElementById('login-page').style.display = 'none';
       document.getElementById('main-app').style.display = 'block';
       document.getElementById('hdr-name').textContent  = json.name;
@@ -1255,6 +1256,20 @@ function showAlert(msg, type) {
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('hn').addEventListener('input', checkDupHN);
   document.getElementById('pname').addEventListener('input', checkDupName);
+  const savedUser = sessionStorage.getItem('hosp_user');
+  if (savedUser) {
+      currentUser = JSON.parse(savedUser);
+      document.getElementById('login-page').style.display = 'none';
+      document.getElementById('main-app').style.display = 'block';
+      document.getElementById('hdr-name').textContent = currentUser.name;
+      document.getElementById('hdr-role').textContent = currentUser.role === 'admin' ? '👑 Admin' : '👤 User';
+      setupTabs();
+    const tzOffset = (new Date()).getTimezoneOffset() * 60000;
+      const localISOTime = (new Date(Date.now() - tzOffset)).toISOString().slice(0, -1).split('T')[0];
+      document.getElementById('dbook').value = localISOTime;
+      
+      loadDataSilent();
+  }
 });
 </script>
 </body>
