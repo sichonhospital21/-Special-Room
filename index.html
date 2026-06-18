@@ -345,7 +345,7 @@
 
       <div class="db-charts-row">
         <div class="db-chart-card" id="cal-card">
-          <div class="db-chart-title">📅 ปฏิทินจำนวนคิวแอดมิท (Admit)</div>
+          <div class="db-chart-title">📅 ปฏิทินจำนวนผู้มาติดต่อบันทึกจอง (รายวัน)</div>
           <div class="cal-header">
             <button class="cal-btn" id="cal-prev" onclick="changeMonth(-1)">◀ ย้อนหลัง</button>
             <div class="cal-month" id="cal-month-label"></div>
@@ -527,7 +527,7 @@ function renderCalendar() {
 
   const counts = {};
   data.forEach(r => {
-    const dt = parseDate(r.dadmit);
+    const dt = parseDate(r.dbook); 
     if (dt && dt.y === calDate.getFullYear() && dt.m === calDate.getMonth() + 1) {
       counts[dt.d] = (counts[dt.d] || 0) + 1;
     }
