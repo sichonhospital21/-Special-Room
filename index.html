@@ -1,3 +1,6 @@
+จัดให้ครับกานต์ นี่คือโค้ดฉบับสมบูรณ์ที่ผมนำเอาส่วนของกราฟวงกลมออก แล้วนำระบบปฏิทินแสดงคิวแอดมิทใส่เข้าไปให้เรียบร้อยแล้วครับ สามารถก๊อปปี้โค้ดทั้งหมดนี้ไปทับไฟล์เดิมได้เลยครับ
+
+```html
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -133,6 +136,21 @@
   .db-refresh-btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 16px;background:white;color:#2d7a3a;border:1px solid #2d7a3a;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Sarabun',sans-serif;margin-bottom:16px}
   .db-refresh-btn:hover{background:#e0f5e5}
   .db-no-data{text-align:center;padding:20px;color:#aaa;font-size:13px}
+
+  /* CALENDAR */
+  .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .cal-btn { background: #f0faf5; border: 1px solid #c8e6cc; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-family: 'Sarabun', sans-serif; color: #2d7a3a; font-weight: 600; transition: all 0.15s; }
+  .cal-btn:hover:not(:disabled) { background: #e0f5e5; }
+  .cal-btn:disabled { opacity: 0.4; cursor: not-allowed; background: #f5f5f5; border-color: #e0e0e0; color: #aaa; }
+  .cal-month { font-weight: 700; font-size: 15px; color: #1f5c28; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; }
+  .cal-day-name { font-size: 11px; color: #666; font-weight: 600; padding-bottom: 6px; }
+  .cal-cell { background: #fff; border: 1px solid #eee; border-radius: 8px; padding: 6px 2px; min-height: 54px; display: flex; flex-direction: column; justify-content: flex-start; align-items: center; cursor: default; }
+  .cal-cell.empty { background: transparent; border: none; }
+  .cal-date { font-size: 13px; color: #444; font-weight: 500; margin-bottom: 2px; }
+  .cal-count { font-size: 11px; background: #eef2ff; color: #3730a3; padding: 2px 6px; border-radius: 10px; font-weight: 600; width: 90%; word-break: keep-all; }
+  .cal-cell.today { background: #f0faf2; border-color: #80c890; }
+  .cal-cell.today .cal-date { color: #1a5c25; font-weight: 700; }
 
   /* MODAL */
   .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:999;align-items:center;justify-content:center;padding:16px}
@@ -329,12 +347,15 @@
       </div>
 
       <div class="db-charts-row">
-        <div class="db-chart-card">
-          <div class="db-chart-title">🏥 สัดส่วนประเภทห้องพิเศษ</div>
-          <div class="db-legend" id="db-room-legend"></div>
-          <div style="position:relative;height:220px;">
-            <canvas id="db-room-chart"></canvas>
+        <div class="db-chart-card" id="cal-card">
+          <div class="db-chart-title">📅 ปฏิทินจำนวนคิวแอดมิท (Admit)</div>
+          <div class="cal-header">
+            <button class="cal-btn" id="cal-prev" onclick="changeMonth(-1)">◀ ย้อนหลัง</button>
+            <div class="cal-month" id="cal-month-label"></div>
+            <button class="cal-btn" id="cal-next" onclick="changeMonth(1)">ถัดไป ▶</button>
           </div>
+          <div class="cal-grid" id="cal-grid">
+            </div>
         </div>
         <div class="db-chart-card">
           <div class="db-chart-title">📡 ช่องทางการจอง</div>
@@ -450,12 +471,10 @@ let currentUser = null;
 let searchTimer = null;
 let searchableCache = [];
 let isLoading = false;
-let filterToday = false; // ตัวแปรสำหรับเช็คสถานะปุ่ม แอดมิทวันนี้
-// ตัวแปรเก็บค่าวันที่ต้องการดึงข้อมูล
+let filterToday = false; 
 let fetchStartDate = '';
 let fetchEndDate = '';
 
-// ฟังก์ชันเมื่อกดปุ่ม "ดึงข้อมูล"
 function fetchCustomDate() {
   const s = document.getElementById('fetch-start').value;
   const e = document.getElementById('fetch-end').value;
@@ -465,24 +484,86 @@ function fetchCustomDate() {
   
   fetchStartDate = s;
   fetchEndDate = e;
-  loadData(); // เรียกดึงข้อมูลใหม่
+  loadData(); 
 }
 
-// ฟังก์ชันเมื่อกดปุ่ม "ค่าเริ่มต้น"
 function resetCustomDate() {
   document.getElementById('fetch-start').value = '';
   document.getElementById('fetch-end').value = '';
   fetchStartDate = '';
   fetchEndDate = '';
-  loadData(); // เรียกดึงข้อมูลแบบค่าเริ่มต้น (3 เดือนย้อนหลัง + อนาคต)
+  loadData(); 
 }
 
-// Chart instances — kept so we can destroy before re-draw
-let dbRoomChart = null;
 let dbSrcChart  = null;
 let dbTrendChart = null;
 
-// ===== กรองเฉพาะแอดมิทวันนี้ =====
+// ตัวแปรสำหรับปฏิทิน
+let calDate = new Date(); 
+const MAX_BACK_MONTHS = 3; 
+
+function changeMonth(dir) {
+  calDate.setMonth(calDate.getMonth() + dir);
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const grid = document.getElementById('cal-grid');
+  const monthLabel = document.getElementById('cal-month-label');
+  const prevBtn = document.getElementById('cal-prev');
+  if (!grid || !monthLabel || !prevBtn) return;
+
+  const now = new Date();
+  const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const viewingMonthStart = new Date(calDate.getFullYear(), calDate.getMonth(), 1);
+
+  let monthsDiff = (currentMonthStart.getFullYear() - viewingMonthStart.getFullYear()) * 12 + 
+                   (currentMonthStart.getMonth() - viewingMonthStart.getMonth());
+  
+  prevBtn.disabled = monthsDiff >= MAX_BACK_MONTHS;
+
+  const thaiMonths = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+  monthLabel.textContent = `${thaiMonths[calDate.getMonth()]} ${calDate.getFullYear() + 543}`;
+
+  const daysInMonth = new Date(calDate.getFullYear(), calDate.getMonth() + 1, 0).getDate();
+  const startDay = new Date(calDate.getFullYear(), calDate.getMonth(), 1).getDay(); 
+
+  const counts = {};
+  data.forEach(r => {
+    const dt = parseDate(r.dadmit);
+    if (dt && dt.y === calDate.getFullYear() && dt.m === calDate.getMonth() + 1) {
+      counts[dt.d] = (counts[dt.d] || 0) + 1;
+    }
+  });
+
+  let html = `
+    <div class="cal-day-name" style="color:#d97706">อา.</div>
+    <div class="cal-day-name">จ.</div><div class="cal-day-name">อ.</div>
+    <div class="cal-day-name">พ.</div><div class="cal-day-name">พฤ.</div>
+    <div class="cal-day-name">ศ.</div><div class="cal-day-name">ส.</div>
+  `;
+
+  for (let i = 0; i < startDay; i++) {
+    html += `<div class="cal-cell empty"></div>`;
+  }
+
+  const todayKey = toDateKey({y: now.getFullYear(), m: now.getMonth()+1, d: now.getDate()});
+  for (let d = 1; d <= daysInMonth; d++) {
+    const cellKey = toDateKey({y: calDate.getFullYear(), m: calDate.getMonth()+1, d: d});
+    const isToday = cellKey === todayKey;
+    const count = counts[d] || 0;
+    
+    html += `
+      <div class="cal-cell ${isToday ? 'today' : ''}">
+        <div class="cal-date">${d}</div>
+        ${count > 0 ? `<div class="cal-count">${count} คิว</div>` : ''}
+      </div>
+    `;
+  }
+
+  grid.innerHTML = html;
+}
+
 function toggleFilterToday() {
   filterToday = !filterToday;
   const btn = document.getElementById('btn-filter-today');
@@ -496,7 +577,6 @@ function toggleFilterToday() {
   renderList();
 }
 
-// ===== DUPLICATE CHECK =====
 function normHN(v){ return String(v).trim().replace(/^'+/,'').toLowerCase(); }
 function normName(v){ return String(v).trim().replace(/\s+/g,' ').toLowerCase(); }
 
@@ -548,7 +628,6 @@ function clearDupWarnings(){
   document.getElementById('pname-warn').style.display = 'none';
 }
 
-// ===== LOGIN =====
 async function doLogin() {
   const username = document.getElementById('l-user').value.trim();
   const password = document.getElementById('l-pass').value.trim();
@@ -597,7 +676,6 @@ function setupTabs() {
   document.getElementById('tab-log').style.display       = isAdmin ? '' : 'none';
 }
 
-// ===== DATA =====
 function parseRaw(json) {
   return (json.data || []).map(r => ({
     id: r.id, hn: r.hn, pname: r.pname, dbook: r.dbook, dadmit: r.dadmit,
@@ -610,7 +688,6 @@ function parseRaw(json) {
 async function loadDataSilent() {
   try {
     let url = GAS_URL;
-    // ถ้ามีการเลือกวันที่ ให้แนบไปกับ URL
     if (fetchStartDate && fetchEndDate) {
       url += `?start=${fetchStartDate}&end=${fetchEndDate}`;
     }
@@ -626,7 +703,6 @@ async function loadData(fromDashboard) {
   showLoading(true);
   try {
     let url = GAS_URL;
-    // ถ้ามีการเลือกวันที่ ให้แนบไปกับ URL
     if (fetchStartDate && fetchEndDate) {
       url += `?start=${fetchStartDate}&end=${fetchEndDate}`;
     }
@@ -641,7 +717,6 @@ async function loadData(fromDashboard) {
       renderDashboard();
       showAlert('✅ โหลดข้อมูลสำเร็จ ' + data.length + ' รายการ', 'ok');
     } else {
-      // ปรับข้อความแจ้งเตือนให้ตรงกับรูปแบบที่ดึง
       let msg = fetchStartDate 
         ? `✅ โหลดข้อมูลช่วง ${fmtDate(fetchStartDate)} ถึง ${fmtDate(fetchEndDate)} สำเร็จ (${data.length} รายการ)` 
         : `✅ โหลดข้อมูลเริ่มต้นสำเร็จ (${data.length} รายการ)`;
@@ -686,13 +761,11 @@ function showLoading(on) {
   document.getElementById('loading-bar').style.display = on ? 'block' : 'none';
 }
 
-// ===== HN HELPER =====
 function formatHN(raw) {
   const val = raw.trim().replace(/^'+/, '');
   return val.startsWith('0') ? "'" + val : val;
 }
 
-// ===== SAVE =====
 async function saveBooking() {
   const hn     = formatHN(document.getElementById('hn').value);
   const pname  = document.getElementById('pname').value.trim();
@@ -756,7 +829,6 @@ async function del(id) {
   showLoading(false);
 }
 
-// ===== EDIT =====
 function openEdit(id) {
   const r = data.find(d => String(d.id) === String(id));
   if (!r) return;
@@ -821,12 +893,10 @@ async function saveEdit() {
   showLoading(false);
 }
 
-// ===== DATE =====
 function parseDate(d) {
   if (!d) return null;
   const s = String(d).trim();
 
-  // 1. จัดการ Date Object จาก GAS (กรณีมีอักษร T)
   if (s.includes('T')) {
     const dt = new Date(new Date(s).getTime() + 7 * 3600000);
     if (!isNaN(dt.getTime())) {
@@ -834,7 +904,6 @@ function parseDate(d) {
     }
   }
 
-  // 2. ตรวจจับรูปแบบ YYYY-MM-DD ตรงๆ 
   if (s.includes('-')) {
     const p = s.split('-');
     if (p.length >= 3) {
@@ -842,20 +911,15 @@ function parseDate(d) {
     }
   }
 
-  // 3. ป้องกันกรณี Google Sheets คืนค่ามาเป็นรูปแบบข้อความแบบ DD/MM/YYYY หรือ MM/DD/YYYY
   if (s.includes('/')) {
-    const p = s.split(/[/\s:]+/); // เผื่อมีเวลาพ่วงท้ายมาด้วย
+    const p = s.split(/[/\s:]+/); 
     if (p.length >= 3) {
       let year = parseInt(p[2], 10);
-      // เผื่อ Google Sheets คืนค่าปีมาเป็น พ.ศ. ให้แปลงกลับเป็น ค.ศ.
       if (year > 2500) year -= 543; 
-      
-      // ฟอลแบ็คสมมติฐานเบื้องต้นเป็น DD/MM/YYYY ไว้ก่อน
       return { y: year, m: parseInt(p[1], 10), d: parseInt(p[0], 10) };
     }
   }
 
-  // 4. ท้ายที่สุด ถ้าเป็นรูปแบบ Date string มาตรฐานที่ JavaScript รู้จัก
   const dt = new Date(s);
   if (!isNaN(dt.getTime())) {
     return { y: dt.getFullYear(), m: dt.getMonth() + 1, d: dt.getDate() };
@@ -882,7 +946,6 @@ function fmtDateXL(d) {
   return String(dt.d).padStart(2,'0') + '/' + String(dt.m).padStart(2,'0') + '/' + (dt.y+543);
 }
 
-// ===== RENDER LIST =====
 function srcLabel(s) {
   if (s==='fb') return 'Facebook'; if (s==='counter') return 'เคาน์เตอร์ประชาสัมพันธ์';
   if (s==='line') return 'Line OA'; return 'อื่นๆ';
@@ -936,7 +999,6 @@ function renderList() {
     filtered = data.filter(r => matchedIds.includes(String(r.id)));
   }
 
-  // --- กรองเฉพาะรายการที่ต้องแอดมิทวันนี้ ---
   if (filterToday) {
     const now = new Date();
     const todayKey = toDateKey({ y:now.getFullYear(), m:now.getMonth()+1, d:now.getDate() });
@@ -956,7 +1018,6 @@ function renderList() {
   if (!data.length) { tb.innerHTML = ''; em.style.display = 'block'; rc.textContent = ''; return; }
   em.style.display = 'none';
   
-  // อัปเดตข้อความจำนวนรายการ ให้เข้ากับโหมดการกดปุ่ม
   rc.textContent = filterToday 
     ? `🚨 แอดมิทวันนี้ ${filtered.length} รายการ (จากทั้งหมด ${data.length} รายการ)`
     : (q ? `พบ ${filtered.length} รายการ จากทั้งหมด ${data.length} รายการ` : `ทั้งหมด ${data.length} รายการ`);
@@ -978,12 +1039,9 @@ function renderList() {
   </tr>`).join('');
 }
 
-// ===== DASHBOARD =====
-const ROOM_COLORS = ['#378ADD','#639922','#BA7517','#D4537E','#1D9E75','#7F77DD'];
 const SRC_COLORS  = { counter:'#378ADD', fb:'#06C755', line:'#00B050', other:'#888780' };
 
 function destroyDashboardCharts() {
-  if (dbRoomChart)  { dbRoomChart.destroy();  dbRoomChart  = null; }
   if (dbSrcChart)   { dbSrcChart.destroy();   dbSrcChart   = null; }
   if (dbTrendChart) { dbTrendChart.destroy(); dbTrendChart = null; }
 }
@@ -994,7 +1052,6 @@ function renderDashboard() {
   const now = new Date();
   const todayKey  = toDateKey({ y:now.getFullYear(), m:now.getMonth()+1, d:now.getDate() });
 
-  // week start (Monday)
   const tmp  = new Date(now);
   const diff = tmp.getDate() - tmp.getDay() + (tmp.getDay()===0 ? -6 : 1);
   const weekStartKey  = toDateKey({ y:now.getFullYear(), m:now.getMonth()+1, d:diff });
@@ -1015,31 +1072,6 @@ function renderDashboard() {
 
   destroyDashboardCharts();
 
-  // ----- Room Doughnut -----
-  const roomCount = {};
-  data.forEach(r => (r.rooms||[]).forEach(rm => { roomCount[rm]=(roomCount[rm]||0)+1; }));
-  const roomLabels = Object.keys(roomCount);
-  const roomVals   = roomLabels.map(k => roomCount[k]);
-  const roomCols   = roomLabels.map((_,i) => ROOM_COLORS[i % ROOM_COLORS.length]);
-  const roomTotal  = roomVals.reduce((a,b)=>a+b,0)||1;
-
-  document.getElementById('db-room-legend').innerHTML = roomLabels.map((l,i) =>
-    `<span class="db-legend-item"><span class="db-legend-dot" style="background:${roomCols[i]}"></span>${l} <strong>${Math.round(roomVals[i]/roomTotal*100)}%</strong></span>`
-  ).join('');
-
-  dbRoomChart = new Chart(document.getElementById('db-room-chart'), {
-    type: 'doughnut',
-    data: { labels: roomLabels, datasets: [{ data: roomVals, backgroundColor: roomCols, borderWidth: 2, borderColor: '#fff' }] },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: { callbacks: { label: ctx => ctx.label + ': ' + ctx.raw + ' (' + Math.round(ctx.raw/roomTotal*100) + '%)' } }
-      }
-    }
-  });
-
-  // ----- Source Doughnut -----
   const srcCount = {};
   data.forEach(r => { const s = r.src||'other'; srcCount[s]=(srcCount[s]||0)+1; });
   const srcKeys  = Object.keys(srcCount);
@@ -1064,7 +1096,6 @@ function renderDashboard() {
     }
   });
 
-  // ----- Trend Line (30 days) -----
   const days30 = [];
   for (let i = 29; i >= 0; i--) {
     const d = new Date(now); d.setDate(d.getDate()-i);
@@ -1102,7 +1133,6 @@ function renderDashboard() {
     }
   });
 
-  // ----- Admit table (next 14 days) -----
   const endDt = new Date(now); endDt.setDate(endDt.getDate()+14);
   const endKey = toDateKey({ y:endDt.getFullYear(), m:endDt.getMonth()+1, d:endDt.getDate() });
   const admitMap = {};
@@ -1128,9 +1158,10 @@ function renderDashboard() {
       <td><div class="db-bar-bg"><div class="db-bar-fill" style="width:${pct}%"></div></div></td>
     </tr>`;
   }).join('');
+
+  renderCalendar();
 }
 
-// ===== EXCEL =====
 function exportExcel() {
   if (!data.length) return showAlert('ยังไม่มีรายการจอง', 'err');
   const rows = data.map((r,i) => ({
@@ -1149,7 +1180,6 @@ function exportExcel() {
   showAlert('✅ ดาวน์โหลด Excel เรียบร้อย', 'ok');
 }
 
-// ===== RECEIPT =====
 function downloadReceipt(id) {
   const r = data.find(d => String(d.id) === String(id));
   if (!r) return;
@@ -1220,7 +1250,6 @@ function downloadReceipt(id) {
   }, 300);
 }
 
-// ===== TAGS =====
 function renderTags() {
   const tags = document.getElementById('room-tags');
   tags.innerHTML = [...document.querySelectorAll('#room-opts input:checked')].map(c =>
@@ -1233,7 +1262,6 @@ function unchk(val) {
 }
 document.querySelectorAll('#room-opts input').forEach(c => c.addEventListener('change', renderTags));
 
-// ===== TABS =====
 function sw(tab) {
   const tabs = ['form','list','dashboard','log'];
   document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', tabs[i] === tab));
@@ -1244,7 +1272,6 @@ function sw(tab) {
   if (tab === 'log')       loadLog();
 }
 
-// ===== ALERT =====
 function showAlert(msg, type) {
   const el = document.getElementById('alert-box');
   el.className = 'alert alert-' + (type==='ok' ? 'ok' : 'err');
@@ -1252,7 +1279,6 @@ function showAlert(msg, type) {
   setTimeout(() => { el.style.display = 'none'; }, 4000);
 }
 
-// ===== EVENT LISTENERS =====
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('hn').addEventListener('input', checkDupHN);
   document.getElementById('pname').addEventListener('input', checkDupName);
@@ -1274,3 +1300,5 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
+
+```
