@@ -217,7 +217,7 @@
   </div>
   <div id="loading-bar" class="loading-bar">⏳ กำลังโหลดข้อมูล...</div>
   <div class="tabs" id="tabs-bar">
-    <button class="tab active" onclick="sw('form')">📋 บันทึกการจอง</button>
+    <button class="tab active" id="tab-form" onclick="sw('form')">📋 บันทึกการจอง</button>
     <button class="tab" id="tab-list"      onclick="sw('list')">📄 รายการจอง</button>
     <button class="tab" id="tab-dashboard" onclick="sw('dashboard')">📊 Dashboard</button>
     <button class="tab" id="tab-log"       onclick="sw('log')">📝 Log การแก้ไข</button>
@@ -668,9 +668,15 @@ function doLogout() {
 
 function setupTabs() {
   const isAdmin = currentUser.role === 'admin';
-  document.getElementById('tab-list').style.display      = isAdmin ? '' : 'none';
-  document.getElementById('tab-dashboard').style.display = isAdmin ? '' : 'none';
+  // User (non-admin): เห็นเฉพาะ "รายการจอง" และ "Dashboard"
+  // Admin: เห็นครบทุกแท็บ รวมถึง "บันทึกการจอง" และ "Log การแก้ไข"
+  document.getElementById('tab-form').style.display      = isAdmin ? '' : 'none';
+  document.getElementById('tab-list').style.display      = '';
+  document.getElementById('tab-dashboard').style.display = '';
   document.getElementById('tab-log').style.display       = isAdmin ? '' : 'none';
+
+  // สลับไปแท็บเริ่มต้นที่เหมาะกับสิทธิ์: admin -> บันทึกการจอง, user -> รายการจอง
+  sw(isAdmin ? 'form' : 'list');
 }
 
 function parseRaw(json) {
