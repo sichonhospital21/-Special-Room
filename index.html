@@ -315,7 +315,7 @@
           <thead><tr>
             <th>HN</th><th>ชื่อ-นามสกุล</th><th>วันที่จอง</th><th>วันที่ Admit</th>
             <th>ประเภทห้องพิเศษ</th><th>แพทย์ผู้นัด</th><th>หัตถการ/สาเหตุ</th>
-            <th>เบอร์ติดต่อ</th><th>หมายเหตุ</th><th>สถานะผู้เข้าพัก</th><th id="th-manage">จัดการ</th>
+            <th>เบอร์ติดต่อ</th><th>หมายเหตุ</th><th>สถานะ</th><th id="th-manage">จัดการ</th>
           </tr></thead>
           <tbody id="tbl-body"></tbody>
         </table>
@@ -861,7 +861,7 @@ async function updateStatus(id, status) {
       action:'updateStatus', id, status,
       username: currentUser.username, name: currentUser.name
     })});
-    showAlert('✅ อัปเดตสถานะผู้เข้าพักเรียบร้อย', 'ok');
+    showAlert('✅ อัปเดตสถานะเรียบร้อย', 'ok');
   } catch(e) {
     data[idx].status = prevStatus;
     renderList();
@@ -1217,7 +1217,7 @@ function exportExcel() {
     'ประเภทห้องพิเศษ': (r.rooms||[]).join(', '),
     'แพทย์ผู้นัด': r.doctor||'-', 'หัตถการ/สาเหตุที่นัด': r.reason||'-',
     'เบอร์ติดต่อ': r.phone||'-', 'ช่องทางการจอง': srcLabel(r.src),
-    'สถานะผู้เข้าพัก': r.status || '-', 'หมายเหตุ': r.note||'-'
+    'สถานะ': r.status || '-', 'หมายเหตุ': r.note||'-'
   }));
   const ws = XLSX.utils.json_to_sheet(rows);
   ws['!cols'] = [{wch:6},{wch:12},{wch:22},{wch:14},{wch:14},{wch:32},{wch:18},{wch:24},{wch:14},{wch:24},{wch:20},{wch:22}];
