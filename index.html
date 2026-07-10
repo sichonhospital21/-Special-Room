@@ -309,7 +309,7 @@
           <thead><tr>
             <th>HN</th><th>ชื่อ-นามสกุล</th><th>วันที่จอง</th><th>วันที่ Admit</th>
             <th>ประเภทห้องพิเศษ</th><th>แพทย์ผู้นัด</th><th>หัตถการ/สาเหตุ</th>
-            <th>เบอร์ติดต่อ</th><th>หมายเหตุ</th><th>จัดการ</th>
+            <th>เบอร์ติดต่อ</th><th>หมายเหตุ</th><th>สถานะผู้เข้าพัก</th><th id="th-manage">จัดการ</th>
           </tr></thead>
           <tbody id="tbl-body"></tbody>
         </table>
@@ -456,10 +456,11 @@
   </div>
 </div>
 
-<div id="receipt-tpl" style="position:fixed;left:-9999px;top:0;width:720px;background:white;font-family:'Sarabun',sans-serif;padding:0;z-index:-1"></div>
+<div id="receipt-tpl" style="position:fixed;left:-9999px;top:0;width:720px;background:white;padding:0;z-index:-1"></div>
 
 <script>
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbyS2D0oI41UWMmK1xecXDgzanxsc0PJJKgiuiWPteu8tAHcFFvoA1CD3eGAF3m4KXTClA/exec';
+const STATUS_OPTIONS = ['', 'พิเศษ 1 รับเข้าแล้ว', 'พิเศษ 2 รับเข้าแล้ว'];
 let data = [];
 let sortKey = 'id';
 let sortAsc = false;
@@ -675,6 +676,10 @@ function setupTabs() {
   document.getElementById('tab-dashboard').style.display = '';
   document.getElementById('tab-log').style.display       = isAdmin ? '' : 'none';
 
+  // ซ่อนคอลัมน์ "จัดการ" (แก้ไข/ใบหลักฐาน/ลบ) สำหรับ user ทั่วไป — คงไว้เฉพาะ admin
+  const thManage = document.getElementById('th-manage');
+  if (thManage) thManage.style.display = isAdmin ? '' : 'none';
+
   // สลับไปแท็บเริ่มต้นที่เหมาะกับสิทธิ์: admin -> บันทึกการจอง, user -> รายการจอง
   sw(isAdmin ? 'form' : 'list');
 }
@@ -684,7 +689,8 @@ function parseRaw(json) {
     id: r.id, hn: r.hn, pname: r.pname, dbook: r.dbook, dadmit: r.dadmit,
     doctor: r.doctor,
     rooms: typeof r.rooms === 'string' ? r.rooms.split(', ').filter(Boolean) : (r.rooms || []),
-    reason: r.reason, phone: r.phone, note: r.note, src: r.src
+    reason: r.reason, phone: r.phone, note: r.note, src: r.src,
+    status: r.status || ''
   }));
 }
 
@@ -830,6 +836,31 @@ async function del(id) {
     showAlert('✅ ลบรายการเรียบร้อย', 'ok');
   } catch(e) { showAlert('❌ ลบไม่สำเร็จ', 'err'); }
   showLoading(false);
+}
+
+function statusColor(status) {
+  if (status === 'พิเศษ 1 รับเข้าแล้ว') return 'background:#dbeafe;color:#1e40af;font-weight:600;border-color:#93c5fd';
+  if (status === 'พิเศษ 2 รับเข้าแล้ว') return 'background:#dcfce7;color:#166534;font-weight:600;border-color:#86efac';
+  return 'background:white;color:#666';
+}
+
+async function updateStatus(id, status) {
+  const idx = data.findIndex(d => String(d.id) === String(id));
+  if (idx === -1) return;
+  const prevStatus = data[idx].status;
+  data[idx].status = status;
+  renderList();
+  try {
+    await fetch(GAS_URL, { method:'POST', body: JSON.stringify({
+      action:'updateStatus', id, status,
+      username: currentUser.username, name: currentUser.name
+    })});
+    showAlert('✅ อัปเดตสถานะผู้เข้าพักเรียบร้อย', 'ok');
+  } catch(e) {
+    data[idx].status = prevStatus;
+    renderList();
+    showAlert('❌ อัปเดตสถานะไม่สำเร็จ กรุณาลองใหม่', 'err');
+  }
 }
 
 function openEdit(id) {
@@ -1025,7 +1056,9 @@ function renderList() {
     ? `🚨 แอดมิทวันนี้ ${filtered.length} รายการ (จากทั้งหมด ${data.length} รายการ)`
     : (q ? `พบ ${filtered.length} รายการ จากทั้งหมด ${data.length} รายการ` : `ทั้งหมด ${data.length} รายการ`);
 
-  if (!filtered.length) { tb.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:24px;color:#999">ไม่พบรายการที่ค้นหา</td></tr>`; return; }
+  if (!filtered.length) { tb.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:24px;color:#999">ไม่พบรายการที่ค้นหา</td></tr>`; return; }
+
+  const isAdmin = currentUser && currentUser.role === 'admin';
 
   tb.innerHTML = filtered.map(r => `<tr>
     <td><strong>${r.hn}</strong></td><td>${r.pname}</td>
@@ -1034,11 +1067,16 @@ function renderList() {
     <td>${(r.rooms||[]).join('<br>')}</td>
     <td>${r.doctor||'-'}</td><td>${r.reason||'-'}</td><td>${r.phone||'-'}</td>
     <td>${srcBadge(r.src)}${r.note ? '<br><span style="font-size:12px;color:#666">'+r.note+'</span>' : ''}</td>
-    <td style="min-width:90px">
+    <td style="min-width:160px">
+      <select onchange="updateStatus('${r.id}', this.value)" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:6px;font-size:12px;font-family:'Sarabun',sans-serif;${statusColor(r.status)}">
+        ${STATUS_OPTIONS.map(opt => `<option value="${opt}" ${r.status===opt?'selected':''}>${opt || '— ยังไม่ระบุ —'}</option>`).join('')}
+      </select>
+    </td>
+    ${isAdmin ? `<td style="min-width:90px">
       <button class="btn-edit"    onclick="openEdit('${r.id}')">✏️ แก้ไข</button>
       <button class="btn-receipt" onclick="downloadReceipt('${r.id}')">🖼️ ใบหลักฐาน</button>
       <button class="btn-del"     onclick="del('${r.id}')">🗑️ ลบ</button>
-    </td>
+    </td>` : ''}
   </tr>`).join('');
 }
 
@@ -1172,10 +1210,11 @@ function exportExcel() {
     'วันที่จอง': fmtDateXL(r.dbook), 'วันที่ Admit': fmtDateXL(r.dadmit),
     'ประเภทห้องพิเศษ': (r.rooms||[]).join(', '),
     'แพทย์ผู้นัด': r.doctor||'-', 'หัตถการ/สาเหตุที่นัด': r.reason||'-',
-    'เบอร์ติดต่อ': r.phone||'-', 'ช่องทางการจอง': srcLabel(r.src), 'หมายเหตุ': r.note||'-'
+    'เบอร์ติดต่อ': r.phone||'-', 'ช่องทางการจอง': srcLabel(r.src),
+    'สถานะผู้เข้าพัก': r.status || '-', 'หมายเหตุ': r.note||'-'
   }));
   const ws = XLSX.utils.json_to_sheet(rows);
-  ws['!cols'] = [{wch:6},{wch:12},{wch:22},{wch:14},{wch:14},{wch:32},{wch:18},{wch:24},{wch:14},{wch:24},{wch:22}];
+  ws['!cols'] = [{wch:6},{wch:12},{wch:22},{wch:14},{wch:14},{wch:32},{wch:18},{wch:24},{wch:14},{wch:24},{wch:20},{wch:22}];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'รายการจองห้องพิเศษ');
   const d = new Date();
