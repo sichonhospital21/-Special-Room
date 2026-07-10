@@ -467,7 +467,7 @@
 
 <script>
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbyS2D0oI41UWMmK1xecXDgzanxsc0PJJKgiuiWPteu8tAHcFFvoA1CD3eGAF3m4KXTClA/exec';
-const STATUS_OPTIONS = ['', 'พิเศษ 1 รับ', 'พิเศษ 2 รับ'];
+const STATUS_OPTIONS = ['', 'พิเศษ 1 รับเข้าแล้ว', 'พิเศษ 2 รับเข้าแล้ว'];
 let data = [];
 let sortKey = 'id';
 let sortAsc = false;
@@ -846,8 +846,8 @@ async function del(id) {
 }
 
 function statusColor(status) {
-  if (status === 'พิเศษ 1 รับเข้าแล้ว') return 'background:#dbeafe;color:#1e40af;font-weight:600;border-color:#93c5fd';
-  if (status === 'พิเศษ 2 รับเข้าแล้ว') return 'background:#dcfce7;color:#166534;font-weight:600;border-color:#86efac';
+  if (status === 'พิเศษ 1 รับ') return 'background:#dbeafe;color:#1e40af;font-weight:600;border-color:#93c5fd';
+  if (status === 'พิเศษ 2 รับ') return 'background:#dcfce7;color:#166534;font-weight:600;border-color:#86efac';
   return 'background:white;color:#666';
 }
 
