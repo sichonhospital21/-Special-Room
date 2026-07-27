@@ -12,7 +12,7 @@
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:'Sarabun',sans-serif;background:#f4f6f4;min-height:100vh;padding:16px}
   .container{max-width:900px;margin:0 auto}
- 
+
   /* LOGIN */
   .login-wrap{max-width:400px;margin:60px auto 0;background:white;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.12)}
   .login-hdr{background:linear-gradient(135deg,#2d7a3a,#1f5c28);color:white;padding:28px 24px;text-align:center}
@@ -90,15 +90,8 @@
   .top-bar .btn-excel{margin-bottom:0;flex:1}
   .tbl-wrap{overflow-x:auto}
   table.list{width:100%;border-collapse:collapse;font-size:13px}
-  table.list th{background:#2d7a3a;color:white;padding:8px 6px;text-align:left;font-weight:600;white-space:normal;font-size:12px;line-height:1.3}
-  table.list td{padding:7px 6px;border-bottom:1px solid #eee;color:#222;vertical-align:top;font-size:12.5px}
-  .status-select{width:100%;max-width:120px;padding:5px 4px;border:1px solid #ccc;border-radius:6px;font-size:11px;font-family:'Sarabun',sans-serif;line-height:1.3}
-  @media(max-width:600px){
-    table.list th{font-size:11px;padding:6px 4px}
-    table.list td{font-size:11.5px;padding:6px 4px}
-    .status-select{max-width:100px;font-size:10.5px}
-    .btn-edit,.btn-receipt,.btn-del{font-size:11px;padding:3px 6px}
-  }
+  table.list th{background:#2d7a3a;color:white;padding:9px 8px;text-align:left;font-weight:600;white-space:nowrap}
+  table.list td{padding:8px;border-bottom:1px solid #eee;color:#222;vertical-align:top}
   table.list tr:hover td{background:#f5faf5}
   .badge-fb{background:#dbeafe;color:#1e40af;font-size:11px;padding:2px 7px;border-radius:10px}
   .badge-cnt{background:#b8860b;color:#fff8dc;font-size:11px;padding:2px 7px;border-radius:10px;font-weight:600}
@@ -299,6 +292,7 @@
       <div class="sort-bar">
         <button id="btn-filter-today" onclick="toggleFilterToday()" style="margin-right:10px; padding:6px 12px; background:white; color:#d97706; border:1px solid #d97706; border-radius:20px; font-size:12px; font-weight:600; cursor:pointer; font-family:'Sarabun',sans-serif; transition:all 0.15s;">🚨 แอดมิทวันนี้</button>
         <span class="sort-label">เรียงตาม:</span>
+        <button class="sort-btn active" onclick="setSort('id')"      id="sort-id">📅 วันที่บันทึก</button>
         <button class="sort-btn"        onclick="setSort('dbook')"  id="sort-dbook">🗓️ วันที่จอง</button>
         <button class="sort-btn"        onclick="setSort('dadmit')" id="sort-dadmit">🏥 วันที่ Admit</button>
         <button class="sort-btn"        onclick="setSort('doctor')" id="sort-doctor">👨‍⚕️ แพทย์</button>
@@ -315,7 +309,7 @@
           <thead><tr>
             <th>HN</th><th>ชื่อ-นามสกุล</th><th>วันที่จอง</th><th>วันที่ Admit</th>
             <th>ประเภทห้องพิเศษ</th><th>แพทย์ผู้นัด</th><th>หัตถการ/สาเหตุ</th>
-            <th>เบอร์ติดต่อ</th><th>หมายเหตุ</th><th>สถานะ</th><th id="th-manage">จัดการ</th>
+            <th>เบอร์ติดต่อ</th><th>หมายเหตุ</th><th>จัดการ</th>
           </tr></thead>
           <tbody id="tbl-body"></tbody>
         </table>
@@ -357,6 +351,7 @@
             <div class="cal-month" id="cal-month-label"></div>
             <button class="cal-btn" id="cal-next" onclick="changeMonth(1)">ถัดไป ▶</button>
           </div>
+          <div id="cal-month-total" style="text-align:center;font-size:13px;color:#1a5c25;background:#f0faf2;border:1px solid #c8e6cc;border-radius:20px;padding:6px 12px;margin-bottom:12px;font-weight:600"></div>
           <div class="cal-grid" id="cal-grid">
             </div>
         </div>
@@ -462,11 +457,10 @@
   </div>
 </div>
 
-<div id="receipt-tpl" style="position:fixed;left:-9999px;top:0;width:720px;background:white;padding:0;z-index:-1"></div>
+<div id="receipt-tpl" style="position:fixed;left:-9999px;top:0;width:720px;background:white;font-family:'Sarabun',sans-serif;padding:0;z-index:-1"></div>
 
 <script>
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbyS2D0oI41UWMmK1xecXDgzanxsc0PJJKgiuiWPteu8tAHcFFvoA1CD3eGAF3m4KXTClA/exec';
-const STATUS_OPTIONS = ['', 'พิเศษ 1 รับ', 'พิเศษ 2 รับ'];
 let data = [];
 let sortKey = 'id';
 let sortAsc = false;
@@ -539,6 +533,14 @@ function renderCalendar() {
       counts[dt.d] = (counts[dt.d] || 0) + 1;
     }
   });
+
+  const monthTotal = Object.values(counts).reduce((a, b) => a + b, 0);
+  const monthTotalEl = document.getElementById('cal-month-total');
+  if (monthTotalEl) {
+    monthTotalEl.textContent = monthTotal > 0
+      ? `📌 รวมทั้งเดือน ${thaiMonths[calDate.getMonth()]} ${calDate.getFullYear() + 543}: ${monthTotal} คิว`
+      : `📌 ${thaiMonths[calDate.getMonth()]} ${calDate.getFullYear() + 543}: ยังไม่มีการจอง`;
+  }
 
   let html = `
     <div class="cal-day-name" style="color:#d97706">อา.</div>
@@ -682,10 +684,6 @@ function setupTabs() {
   document.getElementById('tab-dashboard').style.display = '';
   document.getElementById('tab-log').style.display       = isAdmin ? '' : 'none';
 
-  // ซ่อนคอลัมน์ "จัดการ" (แก้ไข/ใบหลักฐาน/ลบ) สำหรับ user ทั่วไป — คงไว้เฉพาะ admin
-  const thManage = document.getElementById('th-manage');
-  if (thManage) thManage.style.display = isAdmin ? '' : 'none';
-
   // สลับไปแท็บเริ่มต้นที่เหมาะกับสิทธิ์: admin -> บันทึกการจอง, user -> รายการจอง
   sw(isAdmin ? 'form' : 'list');
 }
@@ -695,8 +693,7 @@ function parseRaw(json) {
     id: r.id, hn: r.hn, pname: r.pname, dbook: r.dbook, dadmit: r.dadmit,
     doctor: r.doctor,
     rooms: typeof r.rooms === 'string' ? r.rooms.split(', ').filter(Boolean) : (r.rooms || []),
-    reason: r.reason, phone: r.phone, note: r.note, src: r.src,
-    status: r.status || ''
+    reason: r.reason, phone: r.phone, note: r.note, src: r.src
   }));
 }
 
@@ -842,31 +839,6 @@ async function del(id) {
     showAlert('✅ ลบรายการเรียบร้อย', 'ok');
   } catch(e) { showAlert('❌ ลบไม่สำเร็จ', 'err'); }
   showLoading(false);
-}
-
-function statusColor(status) {
-  if (status === 'พิเศษ 1 รับ') return 'background:#dbeafe;color:#1e40af;font-weight:600;border-color:#93c5fd';
-  if (status === 'พิเศษ 2 รับ') return 'background:#dcfce7;color:#166534;font-weight:600;border-color:#86efac';
-  return 'background:white;color:#666';
-}
-
-async function updateStatus(id, status) {
-  const idx = data.findIndex(d => String(d.id) === String(id));
-  if (idx === -1) return;
-  const prevStatus = data[idx].status;
-  data[idx].status = status;
-  renderList();
-  try {
-    await fetch(GAS_URL, { method:'POST', body: JSON.stringify({
-      action:'updateStatus', id, status,
-      username: currentUser.username, name: currentUser.name
-    })});
-    showAlert('✅ อัปเดตสถานะเรียบร้อย', 'ok');
-  } catch(e) {
-    data[idx].status = prevStatus;
-    renderList();
-    showAlert('❌ อัปเดตสถานะไม่สำเร็จ กรุณาลองใหม่', 'err');
-  }
 }
 
 function openEdit(id) {
@@ -1062,9 +1034,7 @@ function renderList() {
     ? `🚨 แอดมิทวันนี้ ${filtered.length} รายการ (จากทั้งหมด ${data.length} รายการ)`
     : (q ? `พบ ${filtered.length} รายการ จากทั้งหมด ${data.length} รายการ` : `ทั้งหมด ${data.length} รายการ`);
 
-  if (!filtered.length) { tb.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:24px;color:#999">ไม่พบรายการที่ค้นหา</td></tr>`; return; }
-
-  const isAdmin = currentUser && currentUser.role === 'admin';
+  if (!filtered.length) { tb.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:24px;color:#999">ไม่พบรายการที่ค้นหา</td></tr>`; return; }
 
   tb.innerHTML = filtered.map(r => `<tr>
     <td><strong>${r.hn}</strong></td><td>${r.pname}</td>
@@ -1073,16 +1043,11 @@ function renderList() {
     <td>${(r.rooms||[]).join('<br>')}</td>
     <td>${r.doctor||'-'}</td><td>${r.reason||'-'}</td><td>${r.phone||'-'}</td>
     <td>${srcBadge(r.src)}${r.note ? '<br><span style="font-size:12px;color:#666">'+r.note+'</span>' : ''}</td>
-    <td style="min-width:90px;max-width:120px">
-      <select class="status-select" onchange="updateStatus('${r.id}', this.value)" style="${statusColor(r.status)}">
-        ${STATUS_OPTIONS.map(opt => `<option value="${opt}" ${r.status===opt?'selected':''}>${opt || '— ยังไม่ระบุ —'}</option>`).join('')}
-      </select>
-    </td>
-    ${isAdmin ? `<td style="min-width:90px">
+    <td style="min-width:90px">
       <button class="btn-edit"    onclick="openEdit('${r.id}')">✏️ แก้ไข</button>
       <button class="btn-receipt" onclick="downloadReceipt('${r.id}')">🖼️ ใบหลักฐาน</button>
       <button class="btn-del"     onclick="del('${r.id}')">🗑️ ลบ</button>
-    </td>` : ''}
+    </td>
   </tr>`).join('');
 }
 
@@ -1216,11 +1181,10 @@ function exportExcel() {
     'วันที่จอง': fmtDateXL(r.dbook), 'วันที่ Admit': fmtDateXL(r.dadmit),
     'ประเภทห้องพิเศษ': (r.rooms||[]).join(', '),
     'แพทย์ผู้นัด': r.doctor||'-', 'หัตถการ/สาเหตุที่นัด': r.reason||'-',
-    'เบอร์ติดต่อ': r.phone||'-', 'ช่องทางการจอง': srcLabel(r.src),
-    'สถานะ': r.status || '-', 'หมายเหตุ': r.note||'-'
+    'เบอร์ติดต่อ': r.phone||'-', 'ช่องทางการจอง': srcLabel(r.src), 'หมายเหตุ': r.note||'-'
   }));
   const ws = XLSX.utils.json_to_sheet(rows);
-  ws['!cols'] = [{wch:6},{wch:12},{wch:22},{wch:14},{wch:14},{wch:32},{wch:18},{wch:24},{wch:14},{wch:24},{wch:20},{wch:22}];
+  ws['!cols'] = [{wch:6},{wch:12},{wch:22},{wch:14},{wch:14},{wch:32},{wch:18},{wch:24},{wch:14},{wch:24},{wch:22}];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'รายการจองห้องพิเศษ');
   const d = new Date();
