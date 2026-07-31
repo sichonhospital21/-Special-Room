@@ -473,7 +473,6 @@ let searchTimer = null;
 let searchableCache = [];
 let isLoading = false;
 let filterToday = false; 
-let roomReceived = {}; // เก็บสถานะ "รับแล้ว" ของห้องพิเศษเดี่ยว1/2 แบบชั่วคราว (client-side เท่านั้น ไม่บันทึกลง Google Sheet)
 let fetchStartDate = '';
 let fetchEndDate = '';
 
@@ -697,7 +696,8 @@ function parseRaw(json) {
     id: r.id, hn: r.hn, pname: r.pname, dbook: r.dbook, dadmit: r.dadmit,
     doctor: r.doctor,
     rooms: typeof r.rooms === 'string' ? r.rooms.split(', ').filter(Boolean) : (r.rooms || []),
-    reason: r.reason, phone: r.phone, note: r.note, src: r.src
+    reason: r.reason, phone: r.phone, note: r.note, src: r.src,
+    status: r.status || ''
   }));
 }
 
@@ -1001,9 +1001,24 @@ function clearSearch() {
   if (el) { el.value = ''; renderList(); }
 }
 
-function setReceiveStatus(id, status) {
-  roomReceived[id] = status;
+async function setReceiveStatus(id, status) {
+  // อัปเดตหน้าจอทันที (optimistic update) ก่อนรอผลจากเซิร์ฟเวอร์
+  const idx = data.findIndex(d => String(d.id) === String(id));
+  const prevStatus = idx !== -1 ? data[idx].status : '';
+  if (idx !== -1) data[idx].status = status;
   renderList();
+
+  try {
+    await fetch(GAS_URL, { method:'POST', body: JSON.stringify({
+      action:'updateStatus', id, status,
+      username: currentUser.username, name: currentUser.name
+    })});
+  } catch(e) {
+    // ถ้าบันทึกไม่สำเร็จ ให้คืนค่าสถานะเดิมกลับ
+    if (idx !== -1) data[idx].status = prevStatus;
+    renderList();
+    showAlert('❌ บันทึกสถานะไม่สำเร็จ กรุณาลองใหม่', 'err');
+  }
 }
 
 function renderList() {
@@ -1047,12 +1062,12 @@ function renderList() {
 
   tb.innerHTML = filtered.map(r => {
     const rooms = r.rooms || [];
-    const st = roomReceived[r.id] || 'none';
-    const selCls = st === 'room1' ? ' st-room1' : st === 'room2' ? ' st-room2' : '';
+    const st = r.status || '';
+    const selCls = st === 'รับพิเศษ1' ? ' st-room1' : st === 'รับพิเศษ2' ? ' st-room2' : '';
     const receiveSelect = `<select class="receive-select${selCls}" onchange="setReceiveStatus('${r.id}', this.value)">
-      <option value="none"${st==='none'?' selected':''}>ยังไม่รับ</option>
-      <option value="room1"${st==='room1'?' selected':''}>รับพิเศษ1</option>
-      <option value="room2"${st==='room2'?' selected':''}>รับพิเศษ2</option>
+      <option value=""${st===''?' selected':''}>ยังไม่รับ</option>
+      <option value="รับพิเศษ1"${st==='รับพิเศษ1'?' selected':''}>รับพิเศษ1</option>
+      <option value="รับพิเศษ2"${st==='รับพิเศษ2'?' selected':''}>รับพิเศษ2</option>
     </select>`;
     return `<tr>
     <td><strong>${r.hn}</strong></td><td>${r.pname}</td>
