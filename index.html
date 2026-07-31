@@ -103,7 +103,7 @@
   .btn-receipt:hover{background:#e0f5e5}
   .btn-del{background:white;border:1px solid #ccc;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;color:#a32d2d;font-family:'Sarabun',sans-serif;display:block;width:100%}
   .btn-del:hover{background:#fdecea}
-  .receive-select{width:100%;padding:5px 3px;border-radius:6px;font-size:11.5px;font-family:'Sarabun',sans-serif;font-weight:600;margin-bottom:4px;cursor:pointer;border:1px solid #ccc;background:white;color:#444}
+  .receive-select{width:100%;padding:5px 2px;border-radius:6px;font-size:12px;font-family:'Sarabun',sans-serif;font-weight:600;margin-bottom:4px;cursor:pointer;border:1px solid #ccc;background:white;color:#444}
   .receive-select.st-room1{border-color:#d97706;color:#d97706}
   .receive-select.st-room2{border-color:#1a5c9e;color:#1a5c9e}
   .empty{text-align:center;padding:40px;color:#999;font-size:14px}
@@ -1051,8 +1051,8 @@ function renderList() {
     const selCls = st === 'room1' ? ' st-room1' : st === 'room2' ? ' st-room2' : '';
     const receiveSelect = `<select class="receive-select${selCls}" onchange="setReceiveStatus('${r.id}', this.value)">
       <option value="none"${st==='none'?' selected':''}>ยังไม่รับ</option>
-      <option value="room1"${st==='room1'?' selected':''}>พิเศษ1 รับแล้ว</option>
-      <option value="room2"${st==='room2'?' selected':''}>พิเศษ2 รับแล้ว</option>
+      <option value="room1"${st==='room1'?' selected':''}>รับพิเศษ1</option>
+      <option value="room2"${st==='room2'?' selected':''}>รับพิเศษ2</option>
     </select>`;
     return `<tr>
     <td><strong>${r.hn}</strong></td><td>${r.pname}</td>
@@ -1061,7 +1061,7 @@ function renderList() {
     <td>${rooms.join('<br>')}</td>
     <td>${r.doctor||'-'}</td><td>${r.reason||'-'}</td><td>${r.phone||'-'}</td>
     <td>${srcBadge(r.src)}${r.note ? '<br><span style="font-size:12px;color:#666">'+r.note+'</span>' : ''}</td>
-    <td style="min-width:120px">
+    <td style="min-width:90px">
       ${receiveSelect}
       <button class="btn-edit"    onclick="openEdit('${r.id}')">✏️ แก้ไข</button>
       <button class="btn-receipt" onclick="downloadReceipt('${r.id}')">🖼️ ใบหลักฐาน</button>
