@@ -103,10 +103,9 @@
   .btn-receipt:hover{background:#e0f5e5}
   .btn-del{background:white;border:1px solid #ccc;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;color:#a32d2d;font-family:'Sarabun',sans-serif;display:block;width:100%}
   .btn-del:hover{background:#fdecea}
-  .btn-receive{background:white;border:1px solid #d97706;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;color:#d97706;font-family:'Sarabun',sans-serif;display:block;width:100%;margin-bottom:4px;font-weight:600}
-  .btn-receive:hover{background:#fff7ed}
-  .btn-receive.received{background:#2d7a3a;border-color:#2d7a3a;color:white}
-  .btn-receive.received:hover{background:#1f5c28}
+  .receive-select{width:100%;padding:5px 6px;border-radius:6px;font-size:12px;font-family:'Sarabun',sans-serif;font-weight:600;margin-bottom:4px;cursor:pointer;border:1px solid #ccc;background:white;color:#444}
+  .receive-select.st-room1{border-color:#d97706;color:#d97706}
+  .receive-select.st-room2{border-color:#1a5c9e;color:#1a5c9e}
   .empty{text-align:center;padding:40px;color:#999;font-size:14px}
   .empty-icon{font-size:40px;display:block;margin-bottom:10px;opacity:0.4}
   .section-title{font-size:15px;font-weight:600;color:#2d7a3a;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid #e0f5e5}
@@ -1002,9 +1001,8 @@ function clearSearch() {
   if (el) { el.value = ''; renderList(); }
 }
 
-function toggleRoomReceived(id, roomKey) {
-  if (!roomReceived[id]) roomReceived[id] = {};
-  roomReceived[id][roomKey] = !roomReceived[id][roomKey];
+function setReceiveStatus(id, status) {
+  roomReceived[id] = status;
   renderList();
 }
 
@@ -1049,9 +1047,13 @@ function renderList() {
 
   tb.innerHTML = filtered.map(r => {
     const rooms = r.rooms || [];
-    const st   = roomReceived[r.id] || {};
-    const room1Btn = `<button class="btn-receive${st.room1?' received':''}" onclick="toggleRoomReceived('${r.id}','room1')">${st.room1?'✓ พิเศษ1 รับแล้ว':'พิเศษ1 รับแล้ว'}</button>`;
-    const room2Btn = `<button class="btn-receive${st.room2?' received':''}" onclick="toggleRoomReceived('${r.id}','room2')">${st.room2?'✓ พิเศษ2 รับแล้ว':'พิเศษ2 รับแล้ว'}</button>`;
+    const st = roomReceived[r.id] || 'none';
+    const selCls = st === 'room1' ? ' st-room1' : st === 'room2' ? ' st-room2' : '';
+    const receiveSelect = `<select class="receive-select${selCls}" onchange="setReceiveStatus('${r.id}', this.value)">
+      <option value="none"${st==='none'?' selected':''}>ยังไม่รับ</option>
+      <option value="room1"${st==='room1'?' selected':''}>พิเศษ1 รับแล้ว</option>
+      <option value="room2"${st==='room2'?' selected':''}>พิเศษ2 รับแล้ว</option>
+    </select>`;
     return `<tr>
     <td><strong>${r.hn}</strong></td><td>${r.pname}</td>
     <td>${fmtDate(r.dbook)}</td>
@@ -1060,7 +1062,7 @@ function renderList() {
     <td>${r.doctor||'-'}</td><td>${r.reason||'-'}</td><td>${r.phone||'-'}</td>
     <td>${srcBadge(r.src)}${r.note ? '<br><span style="font-size:12px;color:#666">'+r.note+'</span>' : ''}</td>
     <td style="min-width:90px">
-      ${room1Btn}${room2Btn}
+      ${receiveSelect}
       <button class="btn-edit"    onclick="openEdit('${r.id}')">✏️ แก้ไข</button>
       <button class="btn-receipt" onclick="downloadReceipt('${r.id}')">🖼️ ใบหลักฐาน</button>
       <button class="btn-del"     onclick="del('${r.id}')">🗑️ ลบ</button>
