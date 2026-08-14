@@ -1,1 +1,298 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>จองห้องพิเศษออนไลน์ — โรงพยาบาลสิชล</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Sarabun',sans-serif;background:#f4f6f4;min-height:100vh;padding:16px}
+  .container{max-width:600px;margin:0 auto;background:white;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,0.08);overflow:hidden}
+  
+  .hdr{background:linear-gradient(135deg,#2d7a3a,#1f5c28);color:white;padding:24px 20px;text-align:center}
+  .hdr img{width:70px;height:70px;border-radius:50%;object-fit:cover;box-shadow:0 4px 8px rgba(0,0,0,0.15);margin-bottom:12px;background:white}
+  .hdr h1{font-size:22px;font-weight:700}
+  .hdr p{font-size:14px;opacity:0.9;margin-top:4px}
+  
+  .body{padding:24px 20px}
+  .fg{margin-bottom:16px}
+  .fg label{display:block;font-size:14px;color:#444;margin-bottom:6px;font-weight:600}
+  .fg input, .fg textarea{width:100%;padding:12px 14px;border:1px solid #ccc;border-radius:8px;font-size:15px;font-family:'Sarabun',sans-serif;transition:all 0.2s}
+  .fg input:focus, .fg textarea:focus{outline:none;border-color:#2d7a3a;box-shadow:0 0 0 3px rgba(45,122,58,0.15)}
+  .fg textarea{resize:none;height:80px}
+  
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  
+  .multi-select{border:1px solid #ccc;border-radius:8px;overflow:hidden;background:#fafafa}
+  .ms-opt{display:flex;align-items:center;gap:10px;padding:12px;cursor:pointer;font-size:14px;border-bottom:1px solid #eee;transition:background 0.1s}
+  .ms-opt:last-child{border-bottom:none}
+  .ms-opt:hover{background:#e0f5e5}
+  .ms-opt input[type=checkbox]{accent-color:#2d7a3a;width:18px;height:18px;cursor:pointer}
+  
+  .rules-box{background:#fff8e1;border:1px solid #f0d080;border-radius:8px;padding:16px;margin-bottom:20px;font-size:13px;color:#666;line-height:1.6}
+  .rules-box strong{color:#9a6000;display:block;margin-bottom:6px;font-size:14px}
+  .rules-box ul{padding-left:20px;margin:0}
 
+  .btn-primary{width:100%;padding:14px;background:#2d7a3a;color:white;border:none;border-radius:8px;font-size:16px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:background 0.2s;box-shadow:0 4px 12px rgba(45,122,58,0.2)}
+  .btn-primary:hover{background:#1f5c28}
+  .btn-primary:disabled{background:#aaa;cursor:not-allowed;box-shadow:none}
+  
+  .alert{padding:12px 16px;border-radius:8px;font-size:14px;margin-bottom:16px;display:none;text-align:center;font-weight:600}
+  .alert-ok{background:#e0f5e5;color:#1a5c25;border:1px solid #80c890}
+  .alert-err{background:#fdecea;color:#7a1a1a;border:1px solid #f09595}
+
+  /* Success State */
+  #success-state{display:none;text-align:center;padding:40px 20px}
+  #success-state .icon{font-size:60px;margin-bottom:16px}
+  #success-state h2{color:#2d7a3a;margin-bottom:10px}
+  #success-state p{color:#666;font-size:14px;margin-bottom:24px}
+  .btn-outline{display:inline-block;padding:10px 24px;background:white;color:#2d7a3a;border:2px solid #2d7a3a;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;font-family:'Sarabun',sans-serif;text-decoration:none}
+  .btn-outline:hover{background:#f0faf2}
+
+  @media(max-width:500px){
+    .row2{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+
+<div class="container" id="form-container">
+  <div class="hdr">
+    <img src="https://lh3.googleusercontent.com/d/1ZI4K3nkW48nOjza3OVwJw4dqk4m5VmO7" alt="Logo">
+    <h1>โรงพยาบาลสิชล</h1>
+    <p>ระบบจองห้องพิเศษออนไลน์</p>
+  </div>
+  
+  <div class="body">
+    <div class="rules-box">
+      <strong>📌 ข้อควรรู้ก่อนทำการจอง</strong>
+      <ul>
+        <li>สามารถจองล่วงหน้าได้ไม่เกิน 5 วันก่อนวันนัด Admit</li>
+        <li>การจองนี้เป็นเพียง <b>การลงลำดับคิว</b> ยังไม่ยืนยันว่าจะได้ห้องพัก 100% (ขึ้นอยู่กับคิวและห้องว่างในวันนั้น)</li>
+        <li>กรุณาแคปหน้าจอ หรือบันทึกภาพใบจอง เพื่อนำไปแสดงที่เคาน์เตอร์ 11 ในวันที่มา Admit</li>
+      </ul>
+    </div>
+
+    <div id="alert-box" class="alert"></div>
+
+    <div class="row2">
+      <div class="fg">
+        <label>HN (รหัสประจำตัวผู้ป่วย) <span style="color:red">*</span></label>
+        <input type="text" id="hn" placeholder="เช่น 0216754">
+      </div>
+      <div class="fg">
+        <label>ชื่อ-นามสกุล <span style="color:red">*</span></label>
+        <input type="text" id="pname" placeholder="เช่น นาย สมชาย ใจดี">
+      </div>
+    </div>
+    
+    <div class="row2">
+      <div class="fg">
+        <label>วันที่นัด Admit <span style="color:red">*</span></label>
+        <input type="date" id="dadmit">
+      </div>
+      <div class="fg">
+        <label>เบอร์โทรศัพท์ติดต่อ <span style="color:red">*</span></label>
+        <input type="tel" id="phone" placeholder="เช่น 0891234567">
+      </div>
+    </div>
+
+    <div class="fg">
+      <label>แพทย์ผู้นัด (ถ้าทราบ)</label>
+      <input type="text" id="doctor" placeholder="ชื่อแพทย์ที่นัดนอนโรงพยาบาล">
+    </div>
+
+    <div class="fg">
+      <label>หัตถการ / สาเหตุที่นัดนอนโรงพยาบาล</label>
+      <input type="text" id="reason" placeholder="เช่น ผ่าตัด, ส่องกล้อง, คลอดบุตร...">
+    </div>
+
+    <div class="fg">
+      <label>ประเภทห้องพิเศษที่ต้องการ (เลือกได้มากกว่า 1) <span style="color:red">*</span></label>
+      <div class="multi-select" id="room-opts">
+        <label class="ms-opt"><input type="checkbox" value="พิเศษรวมพัดลม"> พิเศษรวมพัดลม</label>
+        <label class="ms-opt"><input type="checkbox" value="พิเศษรวมปรับอากาศ"> พิเศษรวมปรับอากาศ</label>
+        <label class="ms-opt"><input type="checkbox" value="ห้องพิเศษมาตรฐานอาคารผู้ป่วยใน"> ห้องพิเศษมาตรฐานอาคารผู้ป่วยใน</label>
+        <label class="ms-opt"><input type="checkbox" value="ห้องพิเศษเดี่ยว1"> ห้องพิเศษเดี่ยว1</label>
+        <label class="ms-opt"><input type="checkbox" value="ห้องพิเศษเดี่ยว2"> ห้องพิเศษเดี่ยว2</label>
+        <label class="ms-opt"><input type="checkbox" value="ห้องพิเศษ VIP"> ห้องพิเศษ VIP</label>
+      </div>
+    </div>
+
+    <div class="fg">
+      <label>หมายเหตุเพิ่มเติม</label>
+      <textarea id="note" placeholder="ระบุรายละเอียดเพิ่มเติม (ถ้ามี)"></textarea>
+    </div>
+
+    <button class="btn-primary" id="btn-submit" onclick="submitBooking()">ส่งข้อมูลการจองห้องพิเศษ</button>
+  </div>
+</div>
+
+<!-- หน้า Success -->
+<div class="container" id="success-container" style="display:none; margin-top:20px;">
+  <div id="success-state">
+    <div class="icon">✅</div>
+    <h2>ส่งข้อมูลการจองสำเร็จ!</h2>
+    <p>ระบบได้บันทึกคิวการจองห้องพิเศษของท่านเรียบร้อยแล้ว<br>กรุณากดปุ่มด้านล่างเพื่อบันทึกใบหลักฐาน</p>
+    <button class="btn-primary" style="margin-bottom:12px;" onclick="downloadReceipt()">📥 ดาวน์โหลดใบหลักฐานการจอง</button>
+    <br>
+    <button class="btn-outline" onclick="location.reload()">ทำรายการใหม่</button>
+  </div>
+</div>
+
+<!-- Template ใบเสร็จ (ซ่อนไว้สำหรับ Gen รูป) -->
+<div id="receipt-tpl" style="position:fixed;left:-9999px;top:0;width:720px;background:white;font-family:'Sarabun',sans-serif;padding:0;z-index:-1"></div>
+
+<script>
+// ⚠️ เปลี่ยน URL นี้ให้ตรงกับของระบบคุณ (ใช้ตัวเดิมได้เลย)
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbyS2D0oI41UWMmK1xecXDgzanxsc0PJJKgiuiWPteu8tAHcFFvoA1CD3eGAF3m4KXTClA/exec';
+
+let currentBooking = null; // เก็บข้อมูลหลังบันทึกสำเร็จเพื่อเอาไปทำใบเสร็จ
+
+// ฟังก์ชันจัดฟอร์แมตวันที่
+function fmtDate(dateStr) {
+  if (!dateStr) return '-';
+  const dt = new Date(dateStr);
+  const m = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  return String(dt.getDate()).padStart(2,'0') + ' ' + m[dt.getMonth()] + ' ' + (dt.getFullYear()+543);
+}
+
+function showAlert(msg, type) {
+  const el = document.getElementById('alert-box');
+  el.className = 'alert alert-' + (type==='ok' ? 'ok' : 'err');
+  el.textContent = msg; el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; }, 5000);
+}
+
+async function submitBooking() {
+  const hn     = document.getElementById('hn').value.trim().replace(/^'+/, '');
+  const pname  = document.getElementById('pname').value.trim();
+  const dadmit = document.getElementById('dadmit').value;
+  const phone  = document.getElementById('phone').value.trim();
+  const doctor = document.getElementById('doctor').value.trim();
+  const reason = document.getElementById('reason').value.trim();
+  const note   = document.getElementById('note').value.trim();
+  const rooms  = [...document.querySelectorAll('#room-opts input:checked')].map(c => c.value);
+
+  // วันที่จองดึงจากระบบอัตโนมัติ (วันนี้)
+  const tzOffset = (new Date()).getTimezoneOffset() * 60000;
+  const dbook = (new Date(Date.now() - tzOffset)).toISOString().split('T')[0];
+
+  // ตรวจสอบความครบถ้วน
+  if (!hn) return showAlert('กรุณากรอก HN', 'err');
+  if (!pname) return showAlert('กรุณากรอกชื่อ-นามสกุล', 'err');
+  if (!dadmit) return showAlert('กรุณาระบุวันที่ Admit', 'err');
+  if (!phone) return showAlert('กรุณาระบุเบอร์โทรศัพท์', 'err');
+  if (!rooms.length) return showAlert('กรุณาเลือกประเภทห้องอย่างน้อย 1 ประเภท', 'err');
+
+  const btn = document.getElementById('btn-submit');
+  btn.disabled = true; 
+  btn.textContent = '⏳ กำลังส่งข้อมูล กรุณารอสักครู่...';
+  
+  const payload = {
+    action: 'add',
+    id: Date.now(),
+    hn: hn.startsWith('0') ? "'" + hn : hn,
+    pname: pname,
+    dbook: dbook,
+    dadmit: dadmit,
+    doctor: doctor,
+    rooms: rooms,
+    reason: reason,
+    phone: phone,
+    note: note,
+    src: 'other', // ส่งเป็น other (อื่นๆ) ให้แอดมินรู้ว่ามาจากช่องทางออนไลน์
+    username: 'public_web',
+    name: 'ผู้รับบริการ (Online)'
+  };
+
+  try {
+    const res = await fetch(GAS_URL, { method:'POST', body: JSON.stringify(payload) });
+    const json = await res.json();
+    
+    if(json.status === 'success' || json.status === 'ok') {
+      currentBooking = payload; // เก็บไว้สร้างรูป
+      document.getElementById('form-container').style.display = 'none';
+      document.getElementById('success-container').style.display = 'block';
+    } else {
+      showAlert('❌ เกิดข้อผิดพลาดจากเซิร์ฟเวอร์ กรุณาลองใหม่', 'err');
+      btn.disabled = false; btn.textContent = 'ส่งข้อมูลการจองห้องพิเศษ';
+    }
+  } catch(e) { 
+    showAlert('❌ ไม่สามารถเชื่อมต่อระบบได้ กรุณาลองใหม่', 'err');
+    btn.disabled = false; btn.textContent = 'ส่งข้อมูลการจองห้องพิเศษ';
+  }
+}
+
+function downloadReceipt() {
+  if (!currentBooking) return;
+  const r = currentBooking;
+  const refNo = 'ONL-' + String(r.id).slice(-6); // ตั้ง Prefix เป็น ONL ให้รู้ว่าจองออนไลน์
+  const tpl   = document.getElementById('receipt-tpl');
+  
+  tpl.innerHTML = `<div style="width:720px;background:white;padding:0;font-family:'Sarabun',sans-serif">
+    <div style="background:linear-gradient(135deg,#2d7a3a,#1f5c28);padding:28px 36px;display:flex;align-items:center;gap:18px">
+      <div style="width:60px;height:60px;background:white;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;">
+        <img src="https://lh3.googleusercontent.com/d/1ZI4K3nkW48nOjza3OVwJw4dqk4m5VmO7" style="width:100%;height:100%;object-fit:cover;">
+      </div>
+      <div><div style="color:white;font-size:22px;font-weight:700">โรงพยาบาลสิชล</div><div style="color:rgba(255,255,255,0.85);font-size:14px;margin-top:3px">ใบหลักฐานการจองห้องพิเศษ (ระบบออนไลน์)</div></div>
+      <div style="margin-left:auto;text-align:right"><div style="color:rgba(255,255,255,0.7);font-size:12px">เลขที่คิวจอง</div><div style="color:white;font-size:18px;font-weight:700">${refNo}</div></div>
+    </div>
+    <div style="padding:32px 36px">
+      <div style="background:#f0faf3;border:1.5px solid #a8d5b5;border-radius:12px;padding:22px 26px;margin-bottom:22px">
+        <div style="font-size:14px;color:#2d7a3a;margin-bottom:14px;font-weight:700;border-bottom:1px solid #c0e5cc;padding-bottom:8px">👤 ข้อมูลผู้ป่วย</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div><div style="font-size:11px;color:#888;margin-bottom:4px">HN</div><div style="font-size:16px;font-weight:700;color:#111">${r.hn.replace(/'/g,'')}</div></div>
+          <div><div style="font-size:11px;color:#888;margin-bottom:4px">ชื่อ-นามสกุล</div><div style="font-size:16px;font-weight:700;color:#111">${r.pname}</div></div>
+          <div><div style="font-size:11px;color:#888;margin-bottom:4px">เบอร์ติดต่อ</div><div style="font-size:14px;color:#111">${r.phone||'-'}</div></div>
+          <div><div style="font-size:11px;color:#888;margin-bottom:4px">แพทย์ผู้นัด</div><div style="font-size:14px;color:#111">${r.doctor||'-'}</div></div>
+        </div>
+      </div>
+      <div style="background:#fffbf0;border:1.5px solid #f0d080;border-radius:12px;padding:22px 26px;margin-bottom:22px">
+        <div style="font-size:14px;color:#9a6000;margin-bottom:14px;font-weight:700;border-bottom:1px solid #f0d080;padding-bottom:8px">🗓️ รายละเอียดการจอง</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div><div style="font-size:11px;color:#888;margin-bottom:4px">วันที่บันทึกจอง</div><div style="font-size:14px;color:#111">${fmtDate(r.dbook)}</div></div>
+          <div><div style="font-size:11px;color:#888;margin-bottom:4px">วันที่นัด Admit</div><div style="font-size:18px;font-weight:700;color:#c07800">${fmtDate(r.dadmit)}</div></div>
+          <div style="grid-column:span 2"><div style="font-size:11px;color:#888;margin-bottom:8px">ประเภทห้องพิเศษที่จอง (เรียงตามลำดับความต้องการ)</div><div style="display:flex;flex-wrap:wrap;gap:7px">${(r.rooms||[]).map(rm=>`<span style="background:#2d7a3a;color:white;font-size:13px;padding:4px 14px;border-radius:20px">${rm}</span>`).join('')}</div></div>
+          <div style="grid-column:span 2"><div style="font-size:11px;color:#888;margin-bottom:4px">หัตถการ / สาเหตุที่นัด</div><div style="font-size:14px;color:#111">${r.reason||'-'}</div></div>
+        </div>
+      </div>
+      <div style="background:#fff8e1;border:1.5px solid #f0c040;border-radius:12px;padding:20px 24px;margin-bottom:22px">
+        <div style="font-size:14px;color:#7a5000;font-weight:700;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #f0d080">* โปรดแสดงรูปภาพนี้ในวันเข้ารับการรักษา *</div>
+        <ol style="padding-left:20px;margin:0;line-height:2;font-size:12.5px;color:#444">
+          <li>การจองนี้เป็นเพียง การลงลำดับคิวเท่านั้น ยังไม่สามารถยืนยันได้ว่าท่านจะได้ห้องพักตามที่จองไว้หรือไม่</li>
+          <li>ยื่นรูปภาพหลักฐานนี้ ในวันที่แพทย์นัดนอนโรงพยาบาล ณ เคาน์เตอร์เบอร์ 11 เพื่อให้เจ้าหน้าที่ตรวจสอบห้องว่างอีกครั้ง</li>
+          <li>ผู้รับบริการที่พักห้องพิเศษ ต้องมีญาติเฝ้าอย่างน้อย 1 ท่าน</li>
+          <li>โรงพยาบาล ไม่มีนโยบายเรียกเก็บค่าห้องพิเศษล่วงหน้า ผู้รับบริการสามารถชำระได้ ณ จุดชำระเงินเมื่อรับบริการแล้วเท่านั้น</li>
+        </ol>
+      </div>
+      <div style="border-top:1.5px dashed #ddd;padding-top:16px;display:flex;justify-content:space-between">
+        <div style="font-size:12px;color:#aaa">บันทึกรายการผ่านระบบออนไลน์ด้วยตนเอง</div>
+        <div style="font-size:12px;color:#aaa">เวลาที่บันทึก: ${new Date().toLocaleString('th-TH',{hour12:false})} น.</div>
+      </div>
+    </div>
+  </div>`;
+
+  setTimeout(() => {
+    html2canvas(tpl, { scale:2, useCORS:true, backgroundColor:'#ffffff', width:720 }).then(canvas => {
+      const link = document.createElement('a');
+      link.download = 'ใบจองห้องพิเศษ_' + r.hn.replace(/'/g,'') + '.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      tpl.innerHTML = '';
+    }).catch(err => alert('เกิดข้อผิดพลาดในการสร้างใบเสร็จ: ' + err));
+  }, 300);
+}
+
+// ป้องกันการเลือกวัน Admit ย้อนหลัง
+document.addEventListener('DOMContentLoaded', () => {
+  const today = new Date();
+  const tzOffset = today.getTimezoneOffset() * 60000;
+  const localISOTime = (new Date(today.getTime() - tzOffset)).toISOString().split('T')[0];
+  document.getElementById('dadmit').setAttribute('min', localISOTime);
+});
+</script>
+</body>
+</html>
