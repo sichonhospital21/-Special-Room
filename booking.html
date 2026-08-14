@@ -203,17 +203,21 @@ async function submitBooking() {
     reason: reason,
     phone: phone,
     note: note,
-    src: 'other', // ส่งเป็น other (อื่นๆ) ให้แอดมินรู้ว่ามาจากช่องทางออนไลน์
+    src: 'other', 
     username: 'public_web',
     name: 'ผู้รับบริการ (Online)'
   };
 
   try {
-    // ปรับให้ยิงข้อมูลเข้า Google Sheet แล้วข้ามไปหน้า Success เลยโดยไม่ต้องรอเช็ค Status
-    await fetch(GAS_URL, { method:'POST', body: JSON.stringify(payload) });
+    // 💡 ไฮไลท์การแก้ปัญหาอยู่ตรงบรรทัดนี้ครับ เพิ่ม mode: 'no-cors'
+    await fetch(GAS_URL, { 
+      method: 'POST', 
+      mode: 'no-cors', // สั่งให้เบราว์เซอร์ส่งข้อมูลแล้วจบเลย ไม่ต้องกลัว error ข้ามโดเมน
+      body: JSON.stringify(payload) 
+    });
     
-    // แสดงหน้า Success ทันที
-    currentBooking = payload; // เก็บข้อมูลไว้สร้างรูปใบจอง
+    // พอส่งเสร็จปุ๊บ ระบบจะเด้งหน้า Success ทันที
+    currentBooking = payload; 
     document.getElementById('form-container').style.display = 'none';
     document.getElementById('success-container').style.display = 'block';
     
