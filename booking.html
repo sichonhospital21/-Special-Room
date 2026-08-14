@@ -146,12 +146,10 @@
 <div id="receipt-tpl" style="position:fixed;left:-9999px;top:0;width:720px;background:white;font-family:'Sarabun',sans-serif;padding:0;z-index:-1"></div>
 
 <script>
-// ⚠️ เปลี่ยน URL นี้ให้ตรงกับของระบบคุณ (ใช้ตัวเดิมได้เลย)
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbyS2D0oI41UWMmK1xecXDgzanxsc0PJJKgiuiWPteu8tAHcFFvoA1CD3eGAF3m4KXTClA/exec';
 
-let currentBooking = null; // เก็บข้อมูลหลังบันทึกสำเร็จเพื่อเอาไปทำใบเสร็จ
+let currentBooking = null; 
 
-// ฟังก์ชันจัดฟอร์แมตวันที่
 function fmtDate(dateStr) {
   if (!dateStr) return '-';
   const dt = new Date(dateStr);
@@ -176,11 +174,9 @@ async function submitBooking() {
   const note   = document.getElementById('note').value.trim();
   const rooms  = [...document.querySelectorAll('#room-opts input:checked')].map(c => c.value);
 
-  // วันที่จองดึงจากระบบอัตโนมัติ (วันนี้)
   const tzOffset = (new Date()).getTimezoneOffset() * 60000;
   const dbook = (new Date(Date.now() - tzOffset)).toISOString().split('T')[0];
 
-  // ตรวจสอบความครบถ้วน
   if (!hn) return showAlert('กรุณากรอก HN', 'err');
   if (!pname) return showAlert('กรุณากรอกชื่อ-นามสกุล', 'err');
   if (!dadmit) return showAlert('กรุณาระบุวันที่ Admit', 'err');
@@ -209,14 +205,14 @@ async function submitBooking() {
   };
 
   try {
-    // 💡 ไฮไลท์การแก้ปัญหาอยู่ตรงบรรทัดนี้ครับ เพิ่ม mode: 'no-cors'
+    // ส่งข้อมูลแบบข้ามโดเมนและไม่ต้องรอคำตอบกลับ (กันหน้าค้าง)
     await fetch(GAS_URL, { 
       method: 'POST', 
-      mode: 'no-cors', // สั่งให้เบราว์เซอร์ส่งข้อมูลแล้วจบเลย ไม่ต้องกลัว error ข้ามโดเมน
+      mode: 'no-cors', 
       body: JSON.stringify(payload) 
     });
     
-    // พอส่งเสร็จปุ๊บ ระบบจะเด้งหน้า Success ทันที
+    // ข้ามมาหน้าใบเสร็จทันที
     currentBooking = payload; 
     document.getElementById('form-container').style.display = 'none';
     document.getElementById('success-container').style.display = 'block';
@@ -231,7 +227,7 @@ async function submitBooking() {
 function downloadReceipt() {
   if (!currentBooking) return;
   const r = currentBooking;
-  const refNo = 'ONL-' + String(r.id).slice(-6); // ตั้ง Prefix เป็น ONL ให้รู้ว่าจองออนไลน์
+  const refNo = 'ONL-' + String(r.id).slice(-6); 
   const tpl   = document.getElementById('receipt-tpl');
   
   tpl.innerHTML = `<div style="width:720px;background:white;padding:0;font-family:'Sarabun',sans-serif">
@@ -288,7 +284,6 @@ function downloadReceipt() {
   }, 300);
 }
 
-// ป้องกันการเลือกวัน Admit ย้อนหลัง
 document.addEventListener('DOMContentLoaded', () => {
   const today = new Date();
   const tzOffset = today.getTimezoneOffset() * 60000;
