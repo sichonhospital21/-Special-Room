@@ -209,20 +209,18 @@ async function submitBooking() {
   };
 
   try {
-    const res = await fetch(GAS_URL, { method:'POST', body: JSON.stringify(payload) });
-    const json = await res.json();
+    // ปรับให้ยิงข้อมูลเข้า Google Sheet แล้วข้ามไปหน้า Success เลยโดยไม่ต้องรอเช็ค Status
+    await fetch(GAS_URL, { method:'POST', body: JSON.stringify(payload) });
     
-    if(json.status === 'success' || json.status === 'ok') {
-      currentBooking = payload; // เก็บไว้สร้างรูป
-      document.getElementById('form-container').style.display = 'none';
-      document.getElementById('success-container').style.display = 'block';
-    } else {
-      showAlert('❌ เกิดข้อผิดพลาดจากเซิร์ฟเวอร์ กรุณาลองใหม่', 'err');
-      btn.disabled = false; btn.textContent = 'ส่งข้อมูลการจองห้องพิเศษ';
-    }
+    // แสดงหน้า Success ทันที
+    currentBooking = payload; // เก็บข้อมูลไว้สร้างรูปใบจอง
+    document.getElementById('form-container').style.display = 'none';
+    document.getElementById('success-container').style.display = 'block';
+    
   } catch(e) { 
     showAlert('❌ ไม่สามารถเชื่อมต่อระบบได้ กรุณาลองใหม่', 'err');
-    btn.disabled = false; btn.textContent = 'ส่งข้อมูลการจองห้องพิเศษ';
+    btn.disabled = false; 
+    btn.textContent = 'ส่งข้อมูลการจองห้องพิเศษ';
   }
 }
 
