@@ -233,7 +233,12 @@ table.list{border-collapse:separate;border-spacing:0;background:#fff;border:1px 
 table.list th{background:var(--navy2);padding:11px 9px}table.list td{padding:10px 9px}table.list tr:hover td{background:#f2fbf9}
 .db-metric-grid{grid-template-columns:repeat(4,1fr);gap:14px}.db-metric-card{position:relative;background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;text-align:left;box-shadow:var(--shadow);overflow:hidden}.db-metric-card:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(180deg,var(--teal),var(--cyan));border-radius:4px}
 .db-metric-label{color:var(--muted)}.db-metric-value{font-size:32px;color:var(--navy)}
-.db-charts-row{gap:14px}.db-chart-card,.db-chart-full{border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);background:#fff}.db-chart-title{color:var(--navy);font-size:14px}
+.db-charts-row{gap:14px;align-items:stretch}
+.db-chart-card,.db-chart-full{border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);background:#fff;min-width:0;overflow:hidden}
+.db-chart-title{color:var(--navy);font-size:14px}
+.db-legend{min-width:0}
+.db-legend-item{max-width:100%}
+#db-src-chart-wrap{position:relative;height:220px;width:100%;min-width:0}
 .cal-btn{background:#eef9f7;border-color:#c6e9e3;color:#087d6d;border-radius:9px}.cal-month{color:var(--navy)}
 .cal-cell{border-color:#e5edef;border-radius:9px}.cal-cell.today{background:#e8faf6;border-color:#65cdbc}.cal-count{background:#e5f1ff;color:#1c5e93}
 .modal-bg{backdrop-filter:blur(4px)}.modal{border-radius:18px;box-shadow:0 22px 70px rgba(16,47,61,.24)}.modal-hdr{background:linear-gradient(90deg,var(--navy2),#0b7775);border-radius:18px 18px 0 0}.btn-save-edit{background:linear-gradient(90deg,#1976a8,#1b9bb5);border-radius:10px}
@@ -424,10 +429,10 @@ table.list th{background:var(--navy2);padding:11px 9px}table.list td{padding:10p
           <div class="cal-grid" id="cal-grid">
             </div>
         </div>
-        <div class="db-chart-card">
+        <div class="db-chart-card" style="min-width:0;overflow:hidden">
           <div class="db-chart-title">📡 ช่องทางการจอง</div>
           <div class="db-legend" id="db-src-legend"></div>
-          <div style="position:relative;height:220px;">
+          <div id="db-src-chart-wrap">
             <canvas id="db-src-chart"></canvas>
           </div>
         </div>
@@ -526,7 +531,7 @@ table.list th{background:var(--navy2);padding:11px 9px}table.list td{padding:10p
   </div>
 </div>
 
-<div id="receipt-tpl" style="position:fixed;left:-9999px;top:0;width:720px;background:white;font-family:'Sarabun',sans-serif;padding:0;z-index:-1"></div>
+<div id="receipt-tpl" style="position:fixed;left:-9999px;top:0;width:720px;background:white;padding:0;z-index:-1"></div>
 
 <script>
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbyS2D0oI41UWMmK1xecXDgzanxsc0PJJKgiuiWPteu8tAHcFFvoA1CD3eGAF3m4KXTClA/exec';
