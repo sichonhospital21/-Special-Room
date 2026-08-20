@@ -239,7 +239,9 @@ table.list th{background:var(--navy2);padding:11px 9px}table.list td{padding:10p
 .db-chart-title{color:var(--navy);font-size:14px}
 .db-legend{min-width:0}
 .db-legend-item{max-width:100%}
-#db-src-chart-wrap{position:relative;height:220px;width:100%;min-width:0}
+.db-donut-card{display:flex;flex-direction:column}
+#db-src-chart-wrap{position:relative;flex:1 1 auto;width:100%;max-width:300px;min-height:200px;max-height:280px;margin:0 auto;display:flex;align-items:center;justify-content:center}
+#db-src-chart-wrap canvas{max-width:280px;max-height:280px}
 .cal-btn{background:#eef9f7;border-color:#c6e9e3;color:#087d6d;border-radius:9px}.cal-month{color:var(--navy)}
 .cal-cell{border-color:#e5edef;border-radius:9px}.cal-cell.today{background:#e8faf6;border-color:#65cdbc}.cal-count{background:#e5f1ff;color:#1c5e93}
 .modal-bg{backdrop-filter:blur(4px)}.modal{border-radius:18px;box-shadow:0 22px 70px rgba(16,47,61,.24)}.modal-hdr{background:linear-gradient(90deg,var(--navy2),#0b7775);border-radius:18px 18px 0 0}.btn-save-edit{background:linear-gradient(90deg,#1976a8,#1b9bb5);border-radius:10px}
@@ -430,7 +432,7 @@ table.list th{background:var(--navy2);padding:11px 9px}table.list td{padding:10p
           <div class="cal-grid" id="cal-grid">
             </div>
         </div>
-        <div class="db-chart-card" style="min-width:0;overflow:hidden">
+        <div class="db-chart-card db-donut-card" style="min-width:0;overflow:hidden">
           <div class="db-chart-title">📡 ช่องทางการจอง</div>
           <div class="db-legend" id="db-src-legend"></div>
           <div id="db-src-chart-wrap">
