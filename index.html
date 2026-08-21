@@ -204,18 +204,18 @@ body{background:linear-gradient(135deg,#eaf3f4 0%,#f7faf9 45%,#e8f1f3 100%);padd
 .login-hdr{background:linear-gradient(135deg,var(--navy),#0c6f72 75%,var(--teal));padding:32px 24px}
 .login-body{padding:30px}
 .btn-login{background:linear-gradient(90deg,var(--teal2),var(--teal));border-radius:11px;box-shadow:0 8px 18px rgba(18,184,159,.22)}
-.wrap{position:relative;border:none;border-radius:22px;background:var(--bg);box-shadow:0 18px 55px rgba(16,47,61,.13);overflow:hidden;min-height:760px}
+.wrap{position:relative;border:none;border-radius:22px;background:var(--bg);box-shadow:0 18px 55px rgba(16,47,61,.13);overflow:hidden;min-height:auto}
 .hdr{height:78px;background:linear-gradient(90deg,var(--navy),#12485a 62%,#0d7c76);padding:12px 22px 12px 18px;border-radius:0;box-shadow:0 6px 18px rgba(16,47,61,.18);position:relative;z-index:5}
 .hdr-icon{width:48px;height:48px;border-radius:14px;box-shadow:0 4px 12px rgba(0,0,0,.14)}
 .hdr h1{font-size:18px;letter-spacing:.1px}.hdr p{font-size:11px;color:#d8eef0}
 .hdr-user{font-size:12px}.role-badge{background:rgba(18,184,159,.22);border:1px solid rgba(255,255,255,.18);padding:5px 11px}
 .btn-logout{border:1px solid rgba(255,255,255,.18);padding:7px 12px}
 .loading-bar{background:#fff6dd;border:none;border-bottom:1px solid #f2d38a;color:#8b6200}
-.tabs{position:absolute;left:0;top:78px;bottom:0;width:218px;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;background:linear-gradient(180deg,#123646,#0d2b38);border:none;padding:20px 12px;gap:7px;z-index:4}
-.tab{flex:0 0 auto;text-align:left;border:none;border-radius:12px;color:#b8cbd1;background:transparent;padding:13px 14px;font-size:13px;transition:.2s;display:flex;align-items:center;gap:8px}
+.tabs{position:static;width:100%;display:flex;flex-direction:row;align-items:center;justify-content:flex-start;background:linear-gradient(90deg,#123646,#0d2b38);border:none;padding:10px 16px;gap:8px;z-index:4;flex-wrap:wrap}
+.tab{flex:0 0 auto;text-align:center;border:none;border-radius:10px;color:#b8cbd1;background:transparent;padding:10px 16px;font-size:13px;transition:.2s;display:flex;align-items:center;gap:6px;white-space:nowrap}
 .tab.active{color:#fff;background:linear-gradient(90deg,rgba(18,184,159,.96),rgba(18,184,159,.66));box-shadow:0 8px 18px rgba(0,0,0,.14);font-weight:700;border:none}
 .tab:hover:not(.active){background:rgba(255,255,255,.07);color:#fff}
-.body{margin-left:218px;background:var(--bg);padding:24px;min-height:682px}
+.body{margin-left:0;background:var(--bg);padding:24px;min-height:auto}
 .alert{border-radius:12px;box-shadow:0 5px 16px rgba(0,0,0,.05)}
 .section-title{font-size:17px;color:var(--navy);border:none;padding:0 0 13px;margin-bottom:18px;position:relative}
 .section-title:after{content:"";position:absolute;left:0;bottom:0;width:46px;height:3px;border-radius:3px;background:linear-gradient(90deg,var(--teal),var(--cyan))}
@@ -247,11 +247,11 @@ table.list th{background:var(--navy2);padding:11px 9px}table.list td{padding:10p
 .modal-bg{backdrop-filter:blur(4px)}.modal{border-radius:18px;box-shadow:0 22px 70px rgba(16,47,61,.24)}.modal-hdr{background:linear-gradient(90deg,var(--navy2),#0b7775);border-radius:18px 18px 0 0}.btn-save-edit{background:linear-gradient(90deg,#1976a8,#1b9bb5);border-radius:10px}
 .empty{padding:55px}
 @media(max-width:900px){
-  .tabs{width:190px}.body{margin-left:190px;padding:18px}.db-metric-grid{grid-template-columns:1fr 1fr}.db-charts-row{grid-template-columns:1fr}
+  .body{padding:18px}.db-metric-grid{grid-template-columns:1fr 1fr}.db-charts-row{grid-template-columns:1fr}
 }
 @media(max-width:600px){
   body{padding:8px}.wrap{border-radius:15px}.hdr{height:auto;min-height:72px;padding:10px 12px}.hdr-user{display:none}
-  .tabs{position:static;width:100%;height:auto;flex-direction:row;overflow-x:auto;padding:8px;background:#102f3d;gap:5px}.tab{white-space:nowrap;text-align:center;justify-content:center;padding:10px 12px}.body{margin-left:0;padding:14px;min-height:auto}.db-metric-grid{grid-template-columns:1fr 1fr}.db-charts-row{grid-template-columns:1fr}
+  .tabs{overflow-x:auto;padding:8px;gap:5px}.tab{padding:10px 12px}.body{padding:14px}.db-metric-grid{grid-template-columns:1fr 1fr}.db-charts-row{grid-template-columns:1fr}
 }
 </style>
 
