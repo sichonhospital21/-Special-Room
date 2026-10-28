@@ -130,6 +130,20 @@
   .zoom-scroll{overflow:auto;max-width:calc(100vw - 28px);max-height:calc(100vh - 28px);border-radius:18px;-webkit-overflow-scrolling:touch}
   .zoom-x{position:absolute;right:-8px;top:-8px;z-index:2;width:38px;height:38px;border-radius:50%;border:0;background:var(--gd);color:#fff;font-size:16px;cursor:pointer;box-shadow:0 8px 16px -6px rgba(0,0,0,.5);transition:transform .35s var(--spring)}
   .zoom-x:hover{transform:rotate(90deg) scale(1.1)} .zoom-x:active{transform:scale(.88)}
+
+  /* ---------- เบราว์เซอร์ในแอป (LINE) ---------- */
+  .inapp{position:relative;max-width:600px;margin:0 auto 12px;padding:14px 40px 14px 16px;background:#fff7de;border:1.5px solid #f0d27a;border-radius:18px;align-items:center;gap:12px;flex-wrap:wrap;color:#4a4230;font-size:13.5px;line-height:1.55;animation:alertIn .7s var(--spring) .3s both}
+  .inapp-t{flex:1 1 220px}
+  .inapp-b{display:flex;gap:8px;flex-wrap:wrap}
+  .inapp-b button{font-family:inherit;font-size:13.5px;font-weight:700;padding:9px 14px;border-radius:12px;border:1.5px solid var(--g);background:var(--g);color:#fff;cursor:pointer;transition:transform .35s var(--spring)}
+  .inapp-b button+button{background:#fff;color:var(--g)}
+  .inapp-b button:active{transform:scale(.93)}
+  .inapp-x{position:absolute;right:8px;top:8px;width:28px;height:28px;border:0;border-radius:50%;background:transparent;color:#8a5a00;font-size:15px;cursor:pointer}
+  .save-card{position:relative;width:100%;max-width:460px;max-height:100%;overflow:auto;background:#fff;border-radius:20px;padding:16px;-webkit-overflow-scrolling:touch}
+  .zoom.open .save-card{animation:cardUp .55s var(--spring) both}
+  .save-card .zoom-x{right:10px;top:10px}
+  .save-hint{margin:0 44px 12px 0;padding:10px 12px;border-radius:12px;background:var(--gl);color:#14532d;font-size:14px;line-height:1.5}
+  #saveimg{display:block;width:100%;height:auto;border:1.5px solid var(--line);border-radius:12px;-webkit-touch-callout:default;-webkit-user-select:auto;user-select:auto}
   @media(max-width:500px){.row2{grid-template-columns:1fr;gap:0}.body{padding:6px 16px 22px}}
   @media (prefers-reduced-motion:reduce){
     *,*::before,*::after{animation-duration:.01ms !important;animation-delay:0s !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
@@ -137,6 +151,12 @@
 </style>
 </head>
 <body>
+
+<div class="inapp" id="inapp" style="display:none">
+  <div class="inapp-t"><b>เปิดอยู่ในแอป LINE</b><br>ปุ่มดาวน์โหลดอาจใช้ไม่ได้ แนะนำให้เปิดในเบราว์เซอร์ (Chrome / Safari) ก่อนกรอก</div>
+  <div class="inapp-b"><button type="button" onclick="openExternal()">เปิดในเบราว์เซอร์</button><button type="button" id="copy-link" onclick="copyLink()">คัดลอกลิงก์</button></div>
+  <button type="button" class="inapp-x" onclick="hideInapp()" aria-label="ปิด">✕</button>
+</div>
 
 <div class="container" id="form-container">
   <div class="hdr">
@@ -224,8 +244,9 @@
       <div class="pv-cap"><b>ตัวอย่างใบหลักฐาน</b><button type="button" class="pv-zoom" onclick="openZoom()">ขยายดู</button></div>
       <div class="preview" id="preview" onclick="openZoom()" role="button" tabindex="0" aria-label="ขยายดูใบหลักฐาน" onkeydown="if(event.key==='Enter')openZoom()"><div class="sheet" id="sheet"></div></div>
     </div>
-    <button class="btn-primary" style="margin-bottom:12px;" onclick="downloadReceipt()">📥 ดาวน์โหลดใบหลักฐานการจอง</button>
+    <button class="btn-primary" id="dl-btn" style="margin-bottom:12px;" onclick="downloadReceipt()">📥 ดาวน์โหลดใบหลักฐานการจอง</button>
     <br>
+    <p id="dl-alt" style="display:none;margin:0 0 12px;font-size:13.5px;color:#5b7060">ถ้าไฟล์ไม่ถูกดาวน์โหลด ให้กดค้างที่ตัวอย่างใบหลักฐานแล้วเลือก "ขยายดู" หรือแคปหน้าจอไว้</p>
     <button class="btn-outline" onclick="location.reload()">ทำรายการใหม่</button>
   </div>
 </div>
@@ -236,6 +257,18 @@
   <div class="zoom-card">
     <button type="button" class="zoom-x" onclick="closeZoom()" aria-label="ปิด">✕</button>
     <div class="zoom-scroll" id="zoom-body"></div>
+  </div>
+</div>
+
+<!-- หน้าต่างบันทึกรูป (สำหรับเบราว์เซอร์ในแอป) -->
+<div class="zoom" id="saveov" onclick="if(event.target===this)closeSave()">
+  <div class="save-card">
+    <button type="button" class="zoom-x" onclick="closeSave()" aria-label="ปิด">✕</button>
+    <div class="save-hint"><b>กดค้างที่รูปด้านล่าง</b> แล้วเลือก "บันทึกรูปภาพ" (หรือ "Save image")</div>
+    <div id="save-err" class="save-hint" style="display:none;background:#fdecea;color:#7a1a1a">สร้างรูปไม่สำเร็จ กรุณาแคปหน้าจอใบหลักฐานแทน หรือเปิดหน้านี้ในเบราว์เซอร์แล้วลองใหม่</div>
+    <img id="saveimg" alt="ใบหลักฐานการจอง">
+    <button type="button" class="btn-primary" id="sharebtn" style="display:none;margin-top:12px" onclick="shareImg()">บันทึก / แชร์รูป</button>
+    <button type="button" class="btn-outline" style="margin-top:10px" onclick="closeSave()">ปิด</button>
   </div>
 </div>
 <!-- Template ใบเสร็จ (ซ่อนไว้สำหรับ Gen รูป) -->
@@ -316,6 +349,7 @@ async function submitBooking() {
     document.getElementById('success-container').style.display = 'block';
     document.getElementById('success-container').classList.add('pop');
     renderPreview();
+    hideInapp();
     window.scrollTo({top:0,behavior:'smooth'});
     setTimeout(burst, 450);
     
@@ -434,8 +468,84 @@ window.addEventListener('resize', fitPreview);
 window.addEventListener('load', fitPreview);
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeZoom(); });
 
+/* ---------- รองรับเบราว์เซอร์ในแอป (LINE ฯลฯ) ที่สั่งดาวน์โหลดไฟล์ไม่ได้ ---------- */
+const UA = navigator.userAgent || '';
+const IN_LINE = /\bLine\//i.test(UA);
+const IN_APP = IN_LINE || /FBAN|FBAV|Instagram|MicroMessenger|FB_IAB/i.test(UA);
+let lastImg = null, lastName = 'ใบจองห้องพิเศษ.png';
+
+function dlBusy(on) {
+  const b = document.getElementById('dl-btn'); if (!b) return;
+  if (on) { b.dataset.t = b.textContent; b.textContent = 'กำลังสร้างรูป...'; b.disabled = true; }
+  else { b.textContent = b.dataset.t || '📥 ดาวน์โหลดใบหลักฐานการจอง'; b.disabled = false; }
+}
+
+function saveReceipt(dataUrl, fname) {
+  lastImg = dataUrl; lastName = fname;
+  if (IN_APP) return showSave(dataUrl);
+  try {
+    const link = document.createElement('a');
+    link.download = fname; link.href = dataUrl;
+    document.body.appendChild(link); link.click(); link.remove();
+  } catch (e) { return showSave(dataUrl); }
+  // เผื่อบางเครื่องไม่ยอมดาวน์โหลด: โชว์ปุ่มให้เปิดรูปไว้กดค้างบันทึก
+  const t = document.getElementById('dl-alt'); if (t) t.style.display = 'block';
+}
+
+async function canShareFile() {
+  try {
+    if (!navigator.canShare || !navigator.share) return false;
+    const f = new File([new Blob(['x'], {type: 'image/png'})], 't.png', {type: 'image/png'});
+    return navigator.canShare({files: [f]});
+  } catch (e) { return false; }
+}
+
+async function showSave(dataUrl) {
+  const img = document.getElementById('saveimg'), err = document.getElementById('save-err');
+  if (dataUrl) { img.src = dataUrl; img.style.display = 'block'; err.style.display = 'none'; }
+  else {
+    // สร้างรูปไม่สำเร็จ: ให้ใช้ภาพหน้าจอแทน
+    img.style.display = 'none'; err.style.display = 'block';
+  }
+  document.getElementById('sharebtn').style.display = (dataUrl && await canShareFile()) ? 'block' : 'none';
+  document.getElementById('saveov').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeSave() {
+  document.getElementById('saveov').classList.remove('open');
+  document.body.style.overflow = '';
+}
+async function shareImg() {
+  if (!lastImg) return;
+  try {
+    const blob = await (await fetch(lastImg)).blob();
+    const file = new File([blob], lastName, {type: 'image/png'});
+    await navigator.share({files: [file], title: 'ใบหลักฐานการจองห้องพิเศษ'});
+  } catch (e) { /* ผู้ใช้ปิดหน้าต่างแชร์ */ }
+}
+
+function extUrl() {
+  const u = new URL(location.href);
+  u.searchParams.set('openExternalBrowser', '1');
+  return u.toString();
+}
+function openExternal() { location.href = extUrl(); }
+function copyLink() {
+  const u = extUrl().replace(/[?&]openExternalBrowser=1/, '');
+  const done = () => { const b = document.getElementById('copy-link'); b.textContent = 'คัดลอกแล้ว'; setTimeout(() => b.textContent = 'คัดลอกลิงก์', 2000); };
+  try { navigator.clipboard.writeText(u).then(done, () => prompt('คัดลอกลิงก์นี้ไปเปิดในเบราว์เซอร์', u)); }
+  catch (e) { prompt('คัดลอกลิงก์นี้ไปเปิดในเบราว์เซอร์', u); }
+}
+function hideInapp() { document.getElementById('inapp').style.display = 'none'; }
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (IN_LINE) document.getElementById('inapp').style.display = 'flex';
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSave(); });
+
 function downloadReceipt() {
   if (!currentBooking) return;
+  dlBusy(true);
   const r = currentBooking;
   const refNo = 'ONL-' + String(r.id).slice(-6); 
   const tpl   = document.getElementById('receipt-tpl');
@@ -444,12 +554,12 @@ function downloadReceipt() {
 
   setTimeout(() => {
     html2canvas(tpl, { scale:2, useCORS:true, backgroundColor:'#ffffff', width:720 }).then(canvas => {
-      const link = document.createElement('a');
-      link.download = 'ใบจองห้องพิเศษ_' + r.hn.replace(/'/g,'') + '.png';
-      link.href = canvas.toDataURL('image/png');
-      link.click();
+      const dataUrl = canvas.toDataURL('image/png');
+      const fname = 'ใบจองห้องพิเศษ_' + r.hn.replace(/'/g,'') + '.png';
       tpl.innerHTML = '';
-    }).catch(err => alert('เกิดข้อผิดพลาดในการสร้างใบเสร็จ: ' + err));
+      dlBusy(false);
+      saveReceipt(dataUrl, fname);
+    }).catch(err => { dlBusy(false); tpl.innerHTML = ''; showSave(null); });
   }, 300);
 }
 
