@@ -5,56 +5,117 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>จองห้องพิเศษออนไลน์ — โรงพยาบาลสิชล</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap');
+  :root{
+    --g:#1d7a3b; --gd:#124d27; --gl:#e4f3e8; --gm:#bfe3c8; --y:#f4b92c;
+    --bg:#edf3ee; --line:#cfe0d3; --text:#1a2b1f; --sub:#5b7060; --red:#c2392f;
+    --spring:cubic-bezier(.34,1.56,.64,1);
+    --soft:cubic-bezier(.2,.7,.2,1);
+  }
   *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:'Sarabun',sans-serif;background:#f4f6f4;min-height:100vh;padding:16px;color:#222}
-  .container{max-width:600px;margin:0 auto;background:white;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,0.08);overflow:hidden}
-  
-  .hdr{background:linear-gradient(135deg,#2d7a3a,#1f5c28);color:white;padding:24px 20px;text-align:center}
-  .hdr img{width:70px;height:70px;border-radius:50%;object-fit:cover;box-shadow:0 4px 8px rgba(0,0,0,0.15);margin-bottom:12px;background:white}
-  .hdr h1{font-size:22px;font-weight:700;color:white}
-  .hdr p{font-size:14px;opacity:0.9;margin-top:4px;color:white}
-  
-  .body{padding:24px 20px}
-  .fg{margin-bottom:16px}
-  .fg label{display:block;font-size:14px;color:#444;margin-bottom:6px;font-weight:600}
-  .fg input, .fg textarea{width:100%;padding:12px 14px;border:1px solid #ccc;border-radius:8px;font-size:15px;font-family:'Sarabun',sans-serif;background:#fff;color:#222;transition:all 0.2s}
-  .fg input:focus, .fg textarea:focus{outline:none;border-color:#2d7a3a;box-shadow:0 0 0 3px rgba(45,122,58,0.15)}
-  .fg textarea{resize:none;height:80px}
-  
-  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  
-  .multi-select{border:1px solid #ccc;border-radius:8px;overflow:hidden;background:#fafafa}
-  .ms-opt{display:flex;align-items:center;gap:10px;padding:12px;cursor:pointer;font-size:14px;border-bottom:1px solid #eee;color:#333;transition:background 0.1s}
-  .ms-opt:last-child{border-bottom:none}
-  .ms-opt:hover{background:#e0f5e5}
-  .ms-opt input[type=checkbox]{accent-color:#2d7a3a;width:18px;height:18px;cursor:pointer}
-  
-  .rules-box{background:#fff8e1;border:1px solid #f0d080;border-radius:8px;padding:16px;margin-bottom:20px;font-size:13px;color:#444;line-height:1.6}
-  .rules-box strong{color:#9a6000;display:block;margin-bottom:6px;font-size:14px}
+  html{-webkit-text-size-adjust:100%}
+  body{font-family:'IBM Plex Sans Thai','Sarabun',sans-serif;background:var(--bg);min-height:100vh;padding:16px;color:var(--text);line-height:1.6}
+  .container{max-width:600px;margin:0 auto;background:#fff;border-radius:24px;box-shadow:0 24px 50px -28px rgba(18,77,39,.55),0 2px 0 rgba(18,77,39,.04);overflow:hidden;overflow:clip;animation:cardUp .7s var(--spring) both}
+  @keyframes cardUp{from{opacity:0;transform:translateY(40px) scale(.97)}to{opacity:1;transform:none}}
+
+  /* ---------- Header ---------- */
+  .hdr{position:relative;background:linear-gradient(160deg,var(--g),var(--gd));color:#fff;padding:30px 20px 46px;text-align:center;overflow:hidden}
+  .hdr .blob{position:absolute;border-radius:50%;filter:blur(2px);opacity:.5;pointer-events:none}
+  .hdr .b1{width:190px;height:190px;left:-60px;top:-70px;background:radial-gradient(circle at 30% 30%,#4fc16f,transparent 70%);animation:drift1 9s ease-in-out infinite alternate}
+  .hdr .b2{width:150px;height:150px;right:-40px;bottom:-20px;background:radial-gradient(circle at 60% 40%,#f4b92c,transparent 70%);opacity:.32;animation:drift2 11s ease-in-out infinite alternate}
+  @keyframes drift1{to{transform:translate(70px,40px) scale(1.2)}}
+  @keyframes drift2{to{transform:translate(-80px,-30px) scale(1.25)}}
+  .hdr::after{content:"";position:absolute;left:-8%;right:-8%;bottom:-1px;height:30px;background:#fff;border-radius:50% 50% 0 0/100% 100% 0 0}
+  .hdr img{position:relative;z-index:1;width:84px;height:84px;border-radius:50%;object-fit:cover;background:#fff;padding:3px;box-shadow:0 10px 24px -8px rgba(0,0,0,.5);margin-bottom:12px;animation:drop 1s var(--spring) .15s both}
+  .hdr .ring{position:absolute;left:50%;top:30px;width:84px;height:84px;margin-left:-42px;border-radius:50%;border:3px solid rgba(255,255,255,.7);animation:ring 1.4s ease-out .9s 2 both;z-index:0}
+  @keyframes drop{0%{opacity:0;transform:translateY(-90px) scale(.8,1.2)}45%{opacity:1;transform:translateY(0) scale(1.18,.82)}65%{transform:translateY(-16px) scale(.94,1.06)}82%{transform:translateY(0) scale(1.05,.95)}100%{transform:none}}
+  @keyframes ring{0%{opacity:.8;transform:scale(1)}100%{opacity:0;transform:scale(2.1)}}
+  .hdr h1{position:relative;z-index:1;font-size:24px;font-weight:700;line-height:1.3;animation:fadeUp .6s var(--soft) .55s both}
+  .hdr p{position:relative;z-index:1;font-size:15px;color:#d3efda;margin-top:2px;animation:fadeUp .6s var(--soft) .68s both}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+  .prog{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:12px;padding:10px 20px;background:rgba(255,255,255,.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid #e3eee6;animation:fadeUp .6s var(--soft) .9s both}
+  .prog span{flex:none;font-size:13px;font-weight:600;color:var(--sub);min-width:9.5em;transition:color .3s}
+  .prog .track{flex:1;height:8px;border-radius:99px;background:#e1eee5;overflow:hidden}
+  .prog .track i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,#4fc16f,var(--g));transition:width .6s var(--spring),background .3s}
+  .prog.done span{color:var(--g)}
+  .prog.done .track i{background:linear-gradient(90deg,var(--y),#f7d46b);animation:glow 1.2s ease-out}
+  @keyframes glow{0%{filter:brightness(1)}40%{filter:brightness(1.25)}100%{filter:brightness(1)}}
+  .body{padding:14px 20px 26px}
+  /* ทุกบล็อกใน body เด้งเข้ามาทีละชิ้น (ค่า --i ตั้งจาก JS) */
+  .body>*{animation:pop .75s var(--spring) both;animation-delay:calc(.7s + var(--i,0) * 70ms)}
+  @keyframes pop{0%{opacity:0;transform:translateY(26px) scale(.95)}60%{opacity:1;transform:translateY(-5px) scale(1.01)}100%{opacity:1;transform:none}}
+
+  .fg{margin-bottom:16px;transition:transform .35s var(--spring)}
+  .fg:focus-within{transform:translateY(-2px)}
+  .fg label{display:block;font-size:14px;color:#334a39;margin-bottom:6px;font-weight:600;transition:color .2s}
+  .fg:focus-within>label{color:var(--g)}
+  .fg input{height:50px;line-height:1.2}
+  .fg input,.fg textarea{width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:14px;font-size:15px;font-family:inherit;background:#fff;color:var(--text);transition:border-color .2s,box-shadow .25s}
+  .fg input:focus,.fg textarea:focus{outline:none;border-color:var(--g);box-shadow:0 0 0 4px rgba(29,122,59,.16)}
+  .fg textarea{resize:none;height:84px}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:0 14px;align-items:start}
+
+  /* ---------- ประเภทห้อง ---------- */
+  .multi-select{display:grid;gap:8px}
+  .fg label.ms-opt{display:flex;align-items:center;gap:12px;margin:0;font-weight:500;color:#223;padding:13px 14px;cursor:pointer;font-size:15px;border:1.5px solid var(--line);border-radius:14px;background:#fff;transition:transform .35s var(--spring),border-color .2s,background .2s,box-shadow .2s}
+  .ms-opt:hover{transform:translateX(5px);border-color:var(--gm);background:#f6fbf7}
+  .ms-opt:active{transform:scale(.97)}
+  .ms-opt.on{border-color:var(--g);background:var(--gl);box-shadow:0 8px 16px -12px rgba(29,122,59,.9)}
+  .ms-opt input[type=checkbox]{appearance:none;-webkit-appearance:none;flex:none;width:24px;height:24px;border:2px solid #9bb8a2;border-radius:8px;display:grid;place-items:center;cursor:pointer;background:#fff;transition:background .2s,border-color .2s,transform .4s var(--spring)}
+  .ms-opt input[type=checkbox]::after{content:"";width:6px;height:11px;border:solid #fff;border-width:0 3px 3px 0;transform:rotate(45deg) scale(0);margin:-5px 0 0 -1px;transition:transform .35s var(--spring)}
+  .ms-opt input[type=checkbox]:checked{background:var(--g);border-color:var(--g);transform:scale(1.18)}
+  .ms-opt input[type=checkbox]:checked::after{transform:rotate(45deg) scale(1)}
+  .ms-opt:focus-within{box-shadow:0 0 0 4px rgba(29,122,59,.16)}
+
+  .rules-box{background:#fff7de;border:1.5px solid #f0d27a;border-radius:16px;padding:16px 16px 14px;margin:6px 0 20px;font-size:14px;color:#4a4230;line-height:1.65}
+  .rules-box strong{color:#8a5a00;display:block;margin-bottom:6px;font-size:15px}
   .rules-box ul{padding-left:20px;margin:0}
+  .rules-box li+li{margin-top:4px}
 
-  .btn-primary{width:100%;padding:14px;background:#2d7a3a;color:white;border:none;border-radius:8px;font-size:16px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:background 0.2s;box-shadow:0 4px 12px rgba(45,122,58,0.2)}
-  .btn-primary:hover{background:#1f5c28}
-  .btn-primary:disabled{background:#aaa;cursor:not-allowed;box-shadow:none}
-  
-  .alert{padding:12px 16px;border-radius:8px;font-size:14px;margin-bottom:16px;display:none;text-align:center;font-weight:600}
-  .alert-ok{background:#e0f5e5;color:#1a5c25;border:1px solid #80c890}
-  .alert-err{background:#fdecea;color:#7a1a1a;border:1px solid #f09595}
+  /* ---------- ปุ่ม ---------- */
+  .btn-primary,.btn-outline{font-family:inherit;transition:transform .4s var(--spring),box-shadow .25s,background .2s,filter .2s}
+  .btn-primary{width:100%;padding:16px;background:linear-gradient(180deg,#25904a,var(--g));color:#fff;border:none;border-radius:16px;font-size:17px;font-weight:700;cursor:pointer;box-shadow:0 12px 22px -10px rgba(18,77,39,.8)}
+  .btn-primary{position:relative}
+  .btn-primary.ready::after{content:"";position:absolute;inset:0;border-radius:16px;border:3px solid var(--y);animation:readyRing 1.1s ease-out 2;pointer-events:none}
+  @keyframes readyRing{0%{opacity:.9;transform:scale(1)}100%{opacity:0;transform:scale(1.12,1.35)}}
+  .btn-primary:hover{transform:translateY(-3px);box-shadow:0 18px 26px -12px rgba(18,77,39,.85)}
+  .btn-primary:active{transform:scale(.94,.9);box-shadow:0 4px 10px -6px rgba(18,77,39,.8)}
+  .btn-primary:disabled{cursor:progress;transform:none;background:linear-gradient(100deg,#6fae82 20%,#9bd0ac 45%,#6fae82 70%);background-size:220% 100%;animation:shimmer 1.2s linear infinite;box-shadow:none}
+  @keyframes shimmer{to{background-position:-220% 0}}
+  .btn-outline{display:inline-block;width:100%;padding:14px 24px;background:#fff;color:var(--g);border:2px solid var(--g);border-radius:16px;font-size:16px;font-weight:700;cursor:pointer;text-decoration:none;text-align:center}
+  .btn-outline:hover{background:var(--gl);transform:translateY(-2px)}
+  .btn-outline:active{transform:scale(.95,.92)}
+  button:focus-visible,input:focus-visible{outline:3px solid var(--y);outline-offset:2px}
 
-  /* Success State แก้ไขให้แสดงผลชัดเจน */
-  #success-container{background:#fff;border-radius:16px;padding:10px}
+  .alert{padding:13px 16px;border-radius:14px;font-size:14.5px;margin-bottom:16px;display:none;text-align:center;font-weight:600}
+  .alert.bounce{animation:alertIn .6s var(--spring)}
+  @keyframes alertIn{0%{opacity:0;transform:translateY(-16px) scale(.9)}50%{opacity:1;transform:translateX(7px)}65%{transform:translateX(-6px)}80%{transform:translateX(3px)}100%{transform:none}}
+  .alert-ok{background:var(--gl);color:#14532d;border:1.5px solid #8cc99d}
+  .alert-err{background:#fdecea;color:#7a1a1a;border:1.5px solid #f09595}
+
+  /* ---------- Success ---------- */
+  #success-container{background:#fff;border-radius:24px;padding:10px}
+  #success-container.pop{animation:cardUp .8s var(--spring) both}
   #success-state{text-align:center;padding:30px 20px;background:#fff}
-  #success-state .icon{font-size:50px;margin-bottom:12px}
-  #success-state h2{color:#2d7a3a;font-size:22px;font-weight:700;margin-bottom:10px}
-  #success-state p{color:#444;font-size:15px;line-height:1.6;margin-bottom:24px}
-  
-  .btn-outline{display:inline-block;width:100%;padding:12px 24px;background:white;color:#2d7a3a;border:2px solid #2d7a3a;border-radius:8px;font-size:16px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;text-decoration:none;text-align:center}
-  .btn-outline:hover{background:#f0faf2}
+  #success-state .icon{width:96px;height:96px;margin:0 auto 14px}
+  #success-state .icon svg{width:100%;height:100%;display:block;overflow:visible}
+  #success-state .icon .disc{fill:var(--gl);stroke:var(--g);stroke-width:3;transform-origin:50% 50%;animation:discIn .8s var(--spring) both}
+  #success-state .icon .chk{fill:none;stroke:var(--gd);stroke-width:6;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:60;stroke-dashoffset:60;animation:chk .5s var(--soft) .5s forwards}
+  @keyframes discIn{0%{transform:scale(0)}60%{transform:scale(1.2)}100%{transform:scale(1)}}
+  @keyframes chk{to{stroke-dashoffset:0}}
+  #success-state h2{color:var(--g);font-size:23px;font-weight:700;margin-bottom:10px;animation:pop .8s var(--spring) .55s both}
+  #success-state p{color:#44574a;font-size:15px;line-height:1.65;margin-bottom:24px;animation:pop .8s var(--spring) .65s both}
+  #success-state .btn-primary{animation:pop .8s var(--spring) .75s both}
+  #success-state .btn-outline{animation:pop .8s var(--spring) .85s both}
+  .confetti{position:fixed;z-index:50;width:10px;height:14px;border-radius:3px;pointer-events:none}
 
-  @media(max-width:500px){
-    .row2{grid-template-columns:1fr}
+  @media(max-width:500px){.row2{grid-template-columns:1fr;gap:0}.body{padding:6px 16px 22px}}
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation-duration:.01ms !important;animation-delay:0s !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
   }
 </style>
 </head>
@@ -62,11 +123,15 @@
 
 <div class="container" id="form-container">
   <div class="hdr">
+    <span class="blob b1"></span><span class="blob b2"></span>
+    <span class="ring"></span>
     <img src="https://lh3.googleusercontent.com/d/1ZI4K3nkW48nOjza3OVwJw4dqk4m5VmO7" alt="Logo">
     <h1>โรงพยาบาลสิชล</h1>
     <p>ระบบจองห้องพิเศษออนไลน์</p>
   </div>
   
+  <div class="prog" id="prog"><span id="progTxt">กรอกข้อมูลที่จำเป็น 0/5</span><div class="track"><i id="progBar"></i></div></div>
+
   <div class="body">
     <div class="rules-box">
       <strong>📌 ข้อควรรู้ก่อนทำการจอง</strong>
@@ -135,7 +200,7 @@
 <!-- หน้า Success -->
 <div class="container" id="success-container" style="display:none; margin-top:20px;">
   <div id="success-state">
-    <div class="icon">✅</div>
+    <div class="icon"><svg viewBox="0 0 96 96" aria-hidden="true"><circle class="disc" cx="48" cy="48" r="43"/><path class="chk" d="M30 50l13 13 24-28"/></svg></div>
     <h2>ส่งข้อมูลการจองสำเร็จ!</h2>
     <p>ระบบได้บันทึกคิวการจองห้องพิเศษของท่านเรียบร้อยแล้ว<br>กรุณากดปุ่มด้านล่างเพื่อบันทึกใบหลักฐาน</p>
     <button class="btn-primary" style="margin-bottom:12px;" onclick="downloadReceipt()">📥 ดาวน์โหลดใบหลักฐานการจอง</button>
@@ -163,6 +228,8 @@ function showAlert(msg, type) {
   const el = document.getElementById('alert-box');
   el.className = 'alert alert-' + (type==='ok' ? 'ok' : 'err');
   el.textContent = msg; el.style.display = 'block';
+  el.classList.remove('bounce'); void el.offsetWidth; el.classList.add('bounce');
+  el.scrollIntoView({behavior:'smooth',block:'center'});
   setTimeout(() => { el.style.display = 'none'; }, 5000);
 }
 
@@ -218,11 +285,40 @@ async function submitBooking() {
     currentBooking = payload; 
     document.getElementById('form-container').style.display = 'none';
     document.getElementById('success-container').style.display = 'block';
+    document.getElementById('success-container').classList.add('pop');
+    window.scrollTo({top:0,behavior:'smooth'});
+    setTimeout(burst, 450);
     
   } catch(e) { 
     showAlert('❌ ไม่สามารถเชื่อมต่อระบบได้ กรุณาลองใหม่', 'err');
     btn.disabled = false; 
     btn.textContent = 'ส่งข้อมูลการจองห้องพิเศษ';
+  }
+}
+
+function burst() {
+  if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const icon = document.querySelector('#success-state .icon');
+  if (!icon || !icon.animate) return;
+  const r = icon.getBoundingClientRect();
+  const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+  const colors = ['#1d7a3b','#25904a','#f4b92c','#bfe3c8','#ffffff','#124d27'];
+  for (let i = 0; i < 38; i++) {
+    const el = document.createElement('span');
+    el.className = 'confetti';
+    el.style.left = cx + 'px'; el.style.top = cy + 'px';
+    el.style.background = colors[i % colors.length];
+    if (colors[i % colors.length] === '#ffffff') el.style.boxShadow = '0 0 0 1px #bfe3c8';
+    document.body.appendChild(el);
+    const a = Math.random() * Math.PI * 2, d = 90 + Math.random() * 150;
+    const dx = Math.cos(a) * d, dy = Math.sin(a) * d - 40;
+    const rot = (Math.random() - .5) * 900;
+    const anim = el.animate([
+      { transform: 'translate(-50%,-50%) scale(.2) rotate(0deg)', opacity: 1 },
+      { transform: 'translate(' + dx + 'px,' + dy + 'px) scale(1) rotate(' + rot + 'deg)', opacity: 1, offset: .55 },
+      { transform: 'translate(' + (dx * 1.1) + 'px,' + (dy + 150) + 'px) scale(.8) rotate(' + (rot * 1.4) + 'deg)', opacity: 0 }
+    ], { duration: 1300 + Math.random() * 700, easing: 'cubic-bezier(.2,.8,.3,1)' });
+    anim.onfinish = () => el.remove();
   }
 }
 
@@ -291,6 +387,35 @@ document.addEventListener('DOMContentLoaded', () => {
   const tzOffset = today.getTimezoneOffset() * 60000;
   const localISOTime = (new Date(today.getTime() - tzOffset)).toISOString().split('T')[0];
   document.getElementById('dadmit').setAttribute('min', localISOTime);
+
+  // ลำดับการเด้งเข้ามาของแต่ละบล็อกในฟอร์ม
+  document.querySelectorAll('.body > *').forEach((el, i) => el.style.setProperty('--i', i));
+
+  // ไฮไลต์ห้องที่เลือก
+  document.querySelectorAll('#room-opts .ms-opt').forEach(opt => {
+    const cb = opt.querySelector('input');
+    cb.addEventListener('change', () => opt.classList.toggle('on', cb.checked));
+  });
+
+  // แถบความคืบหน้า: นับช่องที่ต้องกรอก 5 ช่อง
+  const prog = document.getElementById('prog'), bar = document.getElementById('progBar'), txt = document.getElementById('progTxt'), sbtn = document.getElementById('btn-submit');
+  function updateProg() {
+    const ok = [
+      !!document.getElementById('hn').value.trim(),
+      !!document.getElementById('pname').value.trim(),
+      !!document.getElementById('dadmit').value,
+      !!document.getElementById('phone').value.trim(),
+      !!document.querySelector('#room-opts input:checked')
+    ];
+    const n = ok.filter(Boolean).length;
+    bar.style.width = (n / 5 * 100) + '%';
+    txt.textContent = n === 5 ? 'พร้อมส่งแล้ว' : 'กรอกข้อมูลที่จำเป็น ' + n + '/5';
+    prog.classList.toggle('done', n === 5);
+    sbtn.classList.toggle('ready', n === 5);
+  }
+  document.querySelector('.body').addEventListener('input', updateProg);
+  document.querySelector('.body').addEventListener('change', updateProg);
+  updateProg();
 });
 </script>
 </body>
